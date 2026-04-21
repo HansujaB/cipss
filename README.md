@@ -1,97 +1,94 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# CSR Impact App
 
-# Getting Started
+A React Native app for tracking and funding CSR (Corporate Social Responsibility) campaigns with an AI-powered impact scoring system.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+---
 
-## Step 1: Start Metro
+## 📁 Project Structure
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
-
-To start the Metro dev server, run the following command from the root of your React Native project:
-
-```sh
-# Using npm
-npm start
-
-# OR using Yarn
-yarn start
+```
+CSR-Impact-App/
+├── frontend/                  # React Native app (Person 3's work)
+│   ├── src/
+│   │   ├── screens/           # All screen components
+│   │   ├── components/        # Reusable UI components
+│   │   ├── services/          # Data & Firebase logic
+│   │   ├── utils/             # Impact score calculations
+│   │   ├── navigation/        # React Navigation setup
+│   │   └── constants/         # Dummy/seed data
+│   └── App.js
+├── backend/                   # Firebase Cloud Functions (Person 4)
+│   └── functions/index.js
+└── README.md
 ```
 
-## Step 2: Build and run your app
+---
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+## 🚀 Setup Instructions
 
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+### 1. Install dependencies
+```bash
+cd frontend
+npm install
 ```
 
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
+### 2. Install navigation packages
+```bash
+npm install @react-navigation/native @react-navigation/bottom-tabs @react-navigation/native-stack
+npm install react-native-screens react-native-safe-area-context
 ```
 
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
+### 3. iOS only
+```bash
+cd ios && pod install && cd ..
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+### 4. Run the app
+```bash
+# Android
+npx react-native run-android
 
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
+# iOS
+npx react-native run-ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+---
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+## ⚡ Impact Score Formula
 
-## Step 3: Modify your app
+The impact score is a **weighted average** of three sub-scores:
 
-Now that you have successfully run the app, let's make changes!
+| Factor | Weight |
+|---|---|
+| Need Score | 30% |
+| Trust Score | 30% |
+| Expected Impact | 40% |
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+**Score Legend:**
+- 🟢 8.0+ → High Impact
+- 🟡 6.0–7.9 → Moderate Impact
+- 🔴 Below 6.0 → Needs Review
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+---
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+## 📱 Screens
 
-## Congratulations! :tada:
+| Screen | Description |
+|---|---|
+| `DashboardScreen` | Overview stats + top campaigns |
+| `CampaignListScreen` | Browse, search, filter all campaigns |
+| `CampaignDetailScreen` | Full details + score breakdown + funding progress |
+| `FundingScreen` | Submit a funding contribution |
 
-You've successfully run and modified your React Native App. :partying_face:
+---
 
-### Now what?
+## 🔥 Firebase Setup
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+Replace placeholder values in `src/services/firebase.js` with your actual Firebase config from the Firebase Console.
 
-# Troubleshooting
+---
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+## 👥 Team Roles
 
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+- **Person 3 (You):** Frontend — all screens, components, services, navigation
+- **Person 4:** Backend — Firebase Functions in `backend/functions/index.js`
