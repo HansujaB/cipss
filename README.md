@@ -87,8 +87,3 @@ The impact score is a **weighted average** of three sub-scores:
 Replace placeholder values in `src/services/firebase.js` with your actual Firebase config from the Firebase Console.
 
 ---
-
-## 👥 Team Roles
-
-- **Person 3 (You):** Frontend — all screens, components, services, navigation
-- **Person 4:** Backend — Firebase Functions in `backend/functions/index.js`
