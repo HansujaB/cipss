@@ -1,0 +1,112 @@
+// ─────────────────────────────────────────────────────────
+// Prisma Schema — Data-Driven Social Impact Platform
+// ─────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── NGO ──────────────────────────────────────────────────
+
+model NGO {
+  id        String      @id @default(uuid())
+  name      String
+  domain    String // 'waste_management' | 'education' | 'environment'
+  verified  Boolean     @default(false)
+  metrics   NGOMetric[]
+  campaigns Campaign[]
+  createdAt DateTime    @default(now())
+
+  @@map("ngos")
+}
+
+// ── NGO Metrics ──────────────────────────────────────────
+
+model NGOMetric {
+  id            String   @id @default(uuid())
+  ngoId         String
+  ngo           NGO      @relation(fields: [ngoId], references: [id], onDelete: Cascade)
+  lat           Float
+  lng           Float
+  area          String?
+  domain        String
+  wasteKg       Float?
+  volunteers    Int?
+  beneficiaries Int?
+  date          DateTime
+  rawData       Json?
+  createdAt     DateTime @default(now())
+
+  @@index([ngoId])
+  @@index([domain])
+  @@index([date])
+  @@index([lat, lng])
+  @@map("ngo_metrics")
+}
+
+// ── Campaigns ────────────────────────────────────────────
+
+model Campaign {
+  id                String    @id @default(uuid())
+  ngoId             String
+  ngo               NGO       @relation(fields: [ngoId], references: [id], onDelete: Cascade)
+  title             String
+  domain            String
+  lat               Float?
+  lng               Float?
+  area              String?
+  status            String    @default("draft") // draft | active | completed
+  needScore         Float?
+  trustScore        Float?
+  impactScore       Float?
+  llmRecommendation String?   // Gemini-generated strategic recommendation
+  plannedVolunteers Int?
+  actualVolunteers  Int?
+  plannedWasteKg    Float?
+  actualWasteKg     Float?
+  startDate         DateTime?
+  endDate           DateTime?
+  createdAt         DateTime  @default(now())
+
+  @@index([ngoId])
+  @@index([domain])
+  @@index([status])
+  @@index([needScore])
+  @@map("campaigns")
+}
+
+// ── Users ────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(uuid())
+  name      String?
+  email     String   @unique
+  password  String // bcrypt hashed
+  role      String // 'volunteer' | 'influencer' | 'company' | 'ngo_admin'
+  createdAt DateTime @default(now())
+
+  @@map("users")
+}
+
+// ── LLM Insight Cache ────────────────────────────────────
+// Store expensive Gemini calls so we don't re-query for the
+// same area/domain within a short window.
+
+model LLMInsight {
+  id        String   @id @default(uuid())
+  queryKey  String   @unique // e.g. "hotspot:waste_management:28.61:77.23"
+  prompt    String
+  response  String   @db.Text
+  model     String   @default("gemini-2.0-flash")
+  createdAt DateTime @default(now())
+  expiresAt DateTime // TTL — caller decides cache duration
+
+  @@index([queryKey])
+  @@index([expiresAt])
+  @@map("llm_insights")
+}
