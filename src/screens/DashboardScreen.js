@@ -9,7 +9,13 @@ import {
 } from 'react-native';
 import StatCard from '../components/StatCard';
 import CampaignCard from '../components/CampaignCard';
-import { getCampaigns, getTopCampaigns } from '../services/campaignService';
+import { getUserPoints } from '../services/campaignService';
+import {
+  getCampaigns,
+  getTopCampaigns,
+  getJoinedCampaigns,
+  joinCampaign,
+} from '../services/campaignService';
 
 export default function DashboardScreen({ navigation }) {
   const [stats, setStats] = useState({
@@ -18,12 +24,19 @@ export default function DashboardScreen({ navigation }) {
     totalVolunteers: 0,
     avgImpact: 0,
   });
+  const [points, setPoints] = useState(0);
   const [topCampaigns, setTopCampaigns] = useState([]);
+  const [myCampaigns, setMyCampaigns] = useState([]);
 
   useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = () => {
     const all = getCampaigns();
     const top = getTopCampaigns(3);
-
+    const joined = getJoinedCampaigns();
+    setPoints(getUserPoints());
     const totalFunding = all.reduce((s, c) => s + c.fundingRaised, 0);
     const totalVolunteers = all.reduce((s, c) => s + c.volunteers, 0);
     const avgImpact = (
@@ -36,8 +49,15 @@ export default function DashboardScreen({ navigation }) {
       totalVolunteers,
       avgImpact,
     });
+
     setTopCampaigns(top);
-  }, []);
+    setMyCampaigns(joined);
+  };
+
+  const handleJoin = (id) => {
+    joinCampaign(id);
+    loadData(); // 🔥 refresh
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -46,9 +66,12 @@ export default function DashboardScreen({ navigation }) {
         <View style={styles.header}>
           <Text style={styles.greeting}>Good work, Team! 👋</Text>
           <Text style={styles.title}>CSR Dashboard</Text>
+          <Text style={styles.points}>
+            Your Points: {points}
+          </Text>
         </View>
 
-        {/* Stat Cards */}
+        {/* Stats */}
         <View style={styles.statsRow}>
           <StatCard icon="📋" label="Campaigns" value={stats.totalCampaigns} color="#3B82F6" />
           <StatCard icon="👥" label="Volunteers" value={stats.totalVolunteers} color="#8B5CF6" />
@@ -63,6 +86,23 @@ export default function DashboardScreen({ navigation }) {
           <StatCard icon="⚡" label="Avg Impact" value={stats.avgImpact} color="#F59E0B" />
         </View>
 
+        {/* 🔥 MY CAMPAIGNS */}
+        {myCampaigns.length > 0 && (
+          <>
+            <Text style={styles.sectionTitle}>🙋 My Campaigns</Text>
+            {myCampaigns.map((c) => (
+              <CampaignCard
+                key={c.id}
+                campaign={c}
+                onPress={(camp) =>
+                  navigation.navigate('CampaignDetail', { campaign: camp })
+                }
+                onJoin={handleJoin}
+              />
+            ))}
+          </>
+        )}
+
         {/* Top Campaigns */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>🏆 Top Impact Campaigns</Text>
@@ -75,7 +115,10 @@ export default function DashboardScreen({ navigation }) {
           <CampaignCard
             key={c.id}
             campaign={c}
-            onPress={(camp) => navigation.navigate('CampaignDetail', { campaign: camp })}
+            onPress={(camp) =>
+              navigation.navigate('CampaignDetail', { campaign: camp })
+            }
+            onJoin={handleJoin}
           />
         ))}
 
@@ -94,13 +137,19 @@ export default function DashboardScreen({ navigation }) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F9FAFB' },
   container: { padding: 16, paddingBottom: 40 },
+
   header: { marginBottom: 20, paddingTop: 10 },
   greeting: { fontSize: 14, color: '#9CA3AF', fontWeight: '500' },
   title: { fontSize: 26, fontWeight: '900', color: '#1A1A2E', marginTop: 2 },
-  statsRow: {
-    flexDirection: 'row',
-    marginBottom: 10,
+  points: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1D0A69',
+    marginTop: 6,
   },
+
+  statsRow: { flexDirection: 'row', marginBottom: 10 },
+
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -108,8 +157,16 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 12,
   },
-  sectionTitle: { fontSize: 17, fontWeight: '700', color: '#1A1A2E' },
+
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1A1A2E',
+    marginTop: 20,
+  },
+
   seeAll: { fontSize: 13, color: '#3B82F6', fontWeight: '600' },
+
   cta: {
     backgroundColor: '#1A1A2E',
     borderRadius: 14,
@@ -117,5 +174,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 16,
   },
+
   ctaText: { color: '#fff', fontSize: 15, fontWeight: '700' },
 });

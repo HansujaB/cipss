@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Text } from 'react-native';
+import LeaderboardScreen from '../screens/LeaderboardScreen';
 
 import DashboardScreen from '../screens/DashboardScreen';
 import CampaignListScreen from '../screens/CampaignListScreen';
@@ -12,7 +13,8 @@ import FundingScreen from '../screens/FundingScreen';
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-// Stack navigator for campaign flow
+
+// 🔥 Campaign Flow
 function CampaignStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -23,17 +25,21 @@ function CampaignStack() {
   );
 }
 
-// Stack navigator for dashboard (so it can also navigate to detail/funding)
+
+// 🔥 Dashboard Flow
 function DashboardStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="DashboardMain" component={DashboardScreen} />
+      
+      {/* 🔥 Keep SAME names for consistency */}
       <Stack.Screen name="CampaignDetail" component={CampaignDetailScreen} />
       <Stack.Screen name="Funding" component={FundingScreen} />
       <Stack.Screen name="CampaignList" component={CampaignListScreen} />
     </Stack.Navigator>
   );
 }
+
 
 export default function AppNavigator() {
   return (
@@ -49,20 +55,27 @@ export default function AppNavigator() {
             height: 60,
             paddingBottom: 8,
           },
-          tabBarActiveTintColor: '#1A1A2E',
+          tabBarActiveTintColor: '#1D0A69', // 🔥 aligned with your theme
           tabBarInactiveTintColor: '#9CA3AF',
+
           tabBarIcon: ({ focused }) => {
             const icons = {
               Dashboard: focused ? '🏠' : '🏡',
               Campaigns: focused ? '📋' : '📄',
+              Leaderboard: focused ? '🏆' : '🎖️',
             };
             return <Text style={{ fontSize: 20 }}>{icons[route.name]}</Text>;
           },
-          tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+
+          tabBarLabelStyle: {
+            fontSize: 11,
+            fontWeight: '600',
+          },
         })}
       >
         <Tab.Screen name="Dashboard" component={DashboardStack} />
         <Tab.Screen name="Campaigns" component={CampaignStack} />
+        <Tab.Screen name="Leaderboard" component={LeaderboardScreen} />
       </Tab.Navigator>
     </NavigationContainer>
   );

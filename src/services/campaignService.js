@@ -1,6 +1,9 @@
 import { campaigns } from '../constants/dummyData';
 import { calculateImpactScore } from '../utils/impactScore';
 
+// 🔥 NEW: store joined campaigns locally
+let joinedCampaignIds = [];
+let userPoints = 0;
 /**
  * Returns all campaigns with computed impactScore.
  */
@@ -12,16 +15,17 @@ export const getCampaigns = () => {
       campaign.trustScore,
       campaign.expectedImpact
     ),
+    joined: joinedCampaignIds.includes(campaign.id), // 🔥 NEW
   }));
 };
 
 /**
  * Returns a single campaign by ID with impactScore.
- * @param {string} id
  */
 export const getCampaignById = (id) => {
   const campaign = campaigns.find((c) => c.id === id);
   if (!campaign) return null;
+
   return {
     ...campaign,
     impactScore: calculateImpactScore(
@@ -29,12 +33,39 @@ export const getCampaignById = (id) => {
       campaign.trustScore,
       campaign.expectedImpact
     ),
+    joined: joinedCampaignIds.includes(id),
   };
 };
 
 /**
+ * 🔥 NEW: Join campaign
+ */
+export const joinCampaign = (id) => {
+  if (!joinedCampaignIds.includes(id)) {
+    joinedCampaignIds.push(id);
+    userPoints+=10;
+  }
+};
+
+/**
+ * 🔥 NEW: Leave campaign
+ */
+export const leaveCampaign = (id) => {
+  joinedCampaignIds = joinedCampaignIds.filter((cid) => cid !== id);
+};
+export const getUserPoints = () => {
+  return userPoints;
+};
+
+/**
+ * 🔥 NEW: Get joined campaigns
+ */
+export const getJoinedCampaigns = () => {
+  return getCampaigns().filter((c) => joinedCampaignIds.includes(c.id));
+};
+
+/**
  * Returns campaigns filtered by domain.
- * @param {string} domain
  */
 export const getCampaignsByDomain = (domain) => {
   return getCampaigns().filter((c) => c.domain === domain);

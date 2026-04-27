@@ -10,7 +10,7 @@ import {
   StatusBar,
 } from 'react-native';
 import CampaignCard from '../components/CampaignCard';
-import { getCampaigns } from '../services/campaignService';
+import { getCampaigns, joinCampaign } from '../services/campaignService';
 
 const DOMAINS = ['All', 'waste', 'environment', 'education', 'health'];
 
@@ -28,9 +28,11 @@ export default function CampaignListScreen({ navigation }) {
 
   useEffect(() => {
     let result = campaigns;
+
     if (activeFilter !== 'All') {
       result = result.filter((c) => c.domain === activeFilter);
     }
+
     if (search.trim()) {
       result = result.filter(
         (c) =>
@@ -38,8 +40,15 @@ export default function CampaignListScreen({ navigation }) {
           c.location.toLowerCase().includes(search.toLowerCase())
       );
     }
+
     setFiltered(result);
   }, [search, activeFilter, campaigns]);
+
+  // 🔥 NEW: Join handler
+  const handleJoin = (campaignId) => {
+    joinCampaign(campaignId);
+    alert('Joined campaign successfully!');
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -60,7 +69,7 @@ export default function CampaignListScreen({ navigation }) {
           onChangeText={setSearch}
         />
 
-        {/* Domain Filters */}
+        {/* Filters */}
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -88,10 +97,23 @@ export default function CampaignListScreen({ navigation }) {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <CampaignCard
-              campaign={item}
-              onPress={(c) => navigation.navigate('CampaignDetail', { campaign: c })}
-            />
+            <View>
+              <CampaignCard
+                campaign={item}
+                onPress={(c) =>
+                  navigation.navigate('CampaignDetail', { campaign: c })
+                }
+                onJoin={handleJoin}
+              />
+
+              {/* 🔥 NEW: Join Button */}
+              <TouchableOpacity
+                style={styles.joinBtn}
+                onPress={() => handleJoin(item.id)}
+              >
+                <Text style={styles.joinText}>Join Campaign</Text>
+              </TouchableOpacity>
+            </View>
           )}
           ListEmptyComponent={
             <Text style={styles.empty}>No campaigns found.</Text>
@@ -105,9 +127,11 @@ export default function CampaignListScreen({ navigation }) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F9FAFB' },
   container: { flex: 1, paddingHorizontal: 16 },
+
   header: { paddingTop: 20, paddingBottom: 12 },
   headerTitle: { fontSize: 26, fontWeight: '800', color: '#1A1A2E' },
   headerSub: { fontSize: 13, color: '#9CA3AF', marginTop: 2 },
+
   search: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
@@ -116,13 +140,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#1A1A2E',
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
     elevation: 2,
   },
+
   filterRow: { marginBottom: 14, flexGrow: 0 },
+
   filterBtn: {
     paddingHorizontal: 14,
     paddingVertical: 7,
@@ -130,9 +152,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
     marginRight: 8,
   },
+
   filterBtnActive: { backgroundColor: '#1A1A2E' },
+
   filterText: { fontSize: 13, color: '#6B7280', fontWeight: '500' },
   filterTextActive: { color: '#FFFFFF', fontWeight: '700' },
+
   list: { paddingBottom: 30 },
+
   empty: { textAlign: 'center', color: '#9CA3AF', marginTop: 40 },
+
+  // 🔥 NEW STYLE
+  joinBtn: {
+    backgroundColor: '#1D0A69',
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 12,
+  },
+
+  joinText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontWeight: '600',
+  },
 });

@@ -8,7 +8,7 @@ import {
 import { getScoreColor, getScoreLabel } from '../utils/impactScore';
 import { domainColors, domainLabels } from '../constants/dummyData';
 
-export default function CampaignCard({ campaign, onPress }) {
+export default function CampaignCard({ campaign, onPress, onJoin }) {
   const scoreColor = getScoreColor(campaign.impactScore);
   const domainColor = domainColors[campaign.domain] || '#888';
   const fundingPercent = Math.min(
@@ -17,9 +17,18 @@ export default function CampaignCard({ campaign, onPress }) {
   );
 
   return (
-    <TouchableOpacity style={styles.card} onPress={() => onPress(campaign)} activeOpacity={0.85}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => onPress(campaign)}
+      activeOpacity={0.85}
+    >
       {/* Domain Badge */}
-      <View style={[styles.domainBadge, { backgroundColor: domainColor + '22', borderColor: domainColor }]}>
+      <View
+        style={[
+          styles.domainBadge,
+          { backgroundColor: domainColor + '22', borderColor: domainColor },
+        ]}
+      >
         <Text style={[styles.domainText, { color: domainColor }]}>
           {domainLabels[campaign.domain] || campaign.domain}
         </Text>
@@ -31,7 +40,12 @@ export default function CampaignCard({ campaign, onPress }) {
 
       {/* Impact Score */}
       <View style={styles.scoreRow}>
-        <View style={[styles.scoreBadge, { backgroundColor: scoreColor + '22', borderColor: scoreColor }]}>
+        <View
+          style={[
+            styles.scoreBadge,
+            { backgroundColor: scoreColor + '22', borderColor: scoreColor },
+          ]}
+        >
           <Text style={[styles.scoreValue, { color: scoreColor }]}>
             ⚡ {campaign.impactScore}
           </Text>
@@ -44,16 +58,39 @@ export default function CampaignCard({ campaign, onPress }) {
       {/* Funding Progress */}
       <View style={styles.fundingSection}>
         <View style={styles.fundingBar}>
-          <View style={[styles.fundingFill, { width: `${fundingPercent}%`, backgroundColor: scoreColor }]} />
+          <View
+            style={[
+              styles.fundingFill,
+              { width: `${fundingPercent}%`, backgroundColor: scoreColor },
+            ]}
+          />
         </View>
         <View style={styles.fundingInfo}>
-          <Text style={styles.fundingText}>₹{campaign.fundingRaised.toLocaleString()} raised</Text>
+          <Text style={styles.fundingText}>
+            ₹{campaign.fundingRaised.toLocaleString()} raised
+          </Text>
           <Text style={styles.fundingPercent}>{fundingPercent}%</Text>
         </View>
       </View>
 
       {/* Volunteers */}
-      <Text style={styles.volunteers}>👥 {campaign.volunteers} volunteers</Text>
+      <Text style={styles.volunteers}>
+        👥 {campaign.volunteers} volunteers
+      </Text>
+
+      {/* 🔥 NEW: JOIN BUTTON / STATE */}
+      {campaign.joined ? (
+        <View style={styles.joinedTag}>
+          <Text style={styles.joinedText}>✔ Joined</Text>
+        </View>
+      ) : (
+        <TouchableOpacity
+          style={styles.joinBtn}
+          onPress={() => onJoin(campaign.id)}
+        >
+          <Text style={styles.joinText}>Join</Text>
+        </TouchableOpacity>
+      )}
     </TouchableOpacity>
   );
 }
@@ -70,6 +107,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
+
   domainBadge: {
     alignSelf: 'flex-start',
     borderWidth: 1,
@@ -78,44 +116,52 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     marginBottom: 8,
   },
+
   domainText: {
     fontSize: 11,
     fontWeight: '600',
   },
+
   title: {
     fontSize: 17,
     fontWeight: '700',
     color: '#1A1A2E',
     marginBottom: 4,
   },
+
   location: {
     fontSize: 13,
     color: '#6B7280',
     marginBottom: 10,
   },
+
   scoreRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
-    gap: 8,
   },
+
   scoreBadge: {
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
+
   scoreValue: {
     fontSize: 13,
     fontWeight: '700',
   },
+
   scoreLabel: {
     fontSize: 12,
     fontWeight: '600',
   },
+
   fundingSection: {
     marginBottom: 8,
   },
+
   fundingBar: {
     height: 6,
     backgroundColor: '#F3F4F6',
@@ -123,27 +169,59 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 6,
   },
+
   fundingFill: {
     height: '100%',
     borderRadius: 3,
   },
+
   fundingInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+
   fundingText: {
     fontSize: 12,
     color: '#374151',
     fontWeight: '500',
   },
+
   fundingPercent: {
     fontSize: 12,
     color: '#6B7280',
     fontWeight: '600',
   },
+
   volunteers: {
     fontSize: 12,
     color: '#9CA3AF',
     marginTop: 4,
+  },
+
+  // 🔥 NEW
+  joinBtn: {
+    marginTop: 10,
+    backgroundColor: '#1D0A69',
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+
+  joinText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+
+  joinedTag: {
+    marginTop: 10,
+    backgroundColor: '#E6F9F0',
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+
+  joinedText: {
+    color: '#22C55E',
+    fontWeight: '700',
   },
 });
