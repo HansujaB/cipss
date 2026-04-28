@@ -8,8 +8,12 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
+  Alert,
 } from 'react-native';
 import CampaignCard from '../components/CampaignCard';
+import NavigationHeader from '../components/NavigationHeader';
+import BottomTabBar from '../components/BottomTabBar';
+import SideDrawer from '../components/SideDrawer';
 import { getCampaigns, joinCampaign } from '../services/campaignService';
 
 const DOMAINS = ['All', 'waste', 'environment', 'education', 'health'];
@@ -19,6 +23,66 @@ export default function CampaignListScreen({ navigation }) {
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const handleMenuPress = () => {
+    setDrawerOpen(true);
+  };
+
+  const handleCloseDrawer = () => {
+    setDrawerOpen(false);
+  };
+
+  const handleDrawerNavigate = (screenName) => {
+    setDrawerOpen(false);
+    navigation.navigate(screenName);
+  };
+
+  // Menu items - only additional screens NOT in bottom nav
+  const drawerMenuItems = [
+    { key: 'CreateCampaign', label: 'Create Campaign', icon: '➕' },
+    { key: 'CSRMarketplace', label: 'CSR Marketplace', icon: '🏪' },
+    { key: 'ImpactDashboard', label: 'Impact Dashboard', icon: '📊' },
+    { key: 'Network', label: 'Network', icon: '👥' },
+    { key: 'Mentorship', label: 'Mentorship', icon: '👨‍🏫' },
+    { key: 'Streak', label: 'Streak', icon: '🔥' },
+    { key: 'PowerUp', label: 'Power-ups', icon: '⚡' },
+    { key: 'Challenges', label: 'Challenges', icon: '🎯' },
+    { key: 'Profile', label: 'Profile', icon: '👤' },
+  ];
+
+  const handleNotificationPress = () => {
+    Alert.alert('Notifications', 'You have no new notifications');
+  };
+
+  const handleProfilePress = () => {
+    navigation.navigate('Profile');
+  };
+
+  const handleTabPress = (tabKey) => {
+    // Handle tab navigation
+    switch(tabKey) {
+      case 'home':
+        navigation.navigate('Dashboard');
+        break;
+      case 'campaigns':
+        // Already on campaigns
+        break;
+      case 'leaderboard':
+        navigation.navigate('Leaderboard');
+        break;
+      case 'achievements':
+        navigation.navigate('Achievements');
+        break;
+    }
+  };
+
+  const tabs = [
+    { key: 'home', label: 'Home', icon: '🏠' },
+    { key: 'campaigns', label: 'Campaigns', icon: '📋' },
+    { key: 'leaderboard', label: 'Leaderboard', icon: '🏆' },
+    { key: 'achievements', label: 'Achievements', icon: '🎖️' },
+  ];
 
   useEffect(() => {
     const data = getCampaigns();
@@ -51,13 +115,28 @@ export default function CampaignListScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
+    <View style={styles.mainContainer}>
+      <NavigationHeader
+        title="CSR Campaigns"
+        onMenuPress={handleMenuPress}
+        onNotificationPress={handleNotificationPress}
+        onProfilePress={handleProfilePress}
+      />
+      
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>CSR Campaigns</Text>
-          <Text style={styles.headerSub}>{filtered.length} active campaigns</Text>
+          <View style={styles.headerTop}>
+            <View>
+              <Text style={styles.headerSub}>{filtered.length} active campaigns</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.createBtn}
+              onPress={() => navigation.navigate('CreateCampaign')}
+            >
+              <Text style={styles.createBtnText}>+ New</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Search */}
@@ -120,17 +199,52 @@ export default function CampaignListScreen({ navigation }) {
           }
         />
       </View>
-    </SafeAreaView>
+      
+      <BottomTabBar
+        activeTab="campaigns"
+        tabs={tabs}
+        onTabPress={handleTabPress}
+      />
+
+      <SideDrawer
+        isOpen={drawerOpen}
+        onClose={handleCloseDrawer}
+        onNavigate={handleDrawerNavigate}
+        navigation={navigation}
+        menuItems={drawerMenuItems}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F9FAFB' },
-  container: { flex: 1, paddingHorizontal: 16 },
+  mainContainer: { flex: 1, backgroundColor: '#F9FAFB' },
+  container: { 
+    flex: 1, 
+    paddingHorizontal: 16,
+    paddingBottom: 80, // Account for bottom tab bar
+  },
 
   header: { paddingTop: 20, paddingBottom: 12 },
-  headerTitle: { fontSize: 26, fontWeight: '800', color: '#1A1A2E' },
-  headerSub: { fontSize: 13, color: '#9CA3AF', marginTop: 2 },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+
+  headerSub: { fontSize: 16, fontWeight: '600', color: '#1A1A2E' },
+  createBtn: {
+    backgroundColor: '#22C55E',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  createBtnText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 13,
+  },
 
   search: {
     backgroundColor: '#FFFFFF',

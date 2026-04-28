@@ -1,83 +1,59 @@
-// ─────────────────────────────────────────────────────────
-// Funding Service
-// CIPSS Frontend — Live payment API calls
-// ─────────────────────────────────────────────────────────
+// fundingService.js
+// Handles funding logic — currently uses local state (dummy).
+// Replace with Firebase calls when backend is ready.
 
-import { get, post } from './apiClient';
+let fundingLog = []; // In-memory log of all funding transactions
 
-// ── Create a payment order ────────────────────────────────
-export const fundCampaign = async (campaignId, amount, donorName = 'Anonymous', donorEmail = '') => {
+/**
+ * Submit a funding amount for a campaign.
+ * @param {string} campaignId
+ * @param {number} amount - Amount in INR
+ * @param {string} donorName
+ * @returns {{ success: boolean, message: string, transaction: object }}
+ */
+export const fundCampaign = (campaignId, amount, donorName = 'Anonymous') => {
   if (!campaignId || !amount || amount <= 0) {
     return { success: false, message: 'Invalid campaign or amount.' };
   }
 
-  try {
-    const data = await post('/payments/create-order', {
-      campaignId,
-      amount,
-      donorName,
-      donorEmail,
-    });
+  const transaction = {
+    id: Date.now().toString(),
+    campaignId,
+    amount: parseFloat(amount),
+    donorName,
+    timestamp: new Date().toISOString(),
+  };
 
-    return {
-      success: true,
-      message: `Thank you, ${donorName}! ₹${amount} funded successfully.`,
-      transaction: data,
-      orderId: data.orderId,
-    };
-  } catch (error) {
-    // Fallback to local simulation if API fails
-    console.warn('Payment API unavailable, simulating locally');
-    return {
-      success: true,
-      message: `Thank you, ${donorName}! ₹${amount} funded successfully (offline).`,
-      transaction: {
-        id: Date.now().toString(),
-        campaignId,
-        amount: parseFloat(amount),
-        donorName,
-        timestamp: new Date().toISOString(),
-      },
-    };
-  }
+  fundingLog.push(transaction);
+
+  return {
+    success: true,
+    message: `Thank you, ${donorName}! ₹${amount} funded successfully.`,
+    transaction,
+  };
 };
 
-// ── Verify payment ────────────────────────────────────────
-export const verifyPayment = async (paymentData) => {
-  try {
-    const data = await post('/payments/verify', paymentData);
-    return { success: true, data };
-  } catch (error) {
-    return { success: false, message: error.message };
-  }
+/**
+ * Get all funding transactions for a specific campaign.
+ * @param {string} campaignId
+ */
+export const getFundingByCampaign = (campaignId) => {
+  return fundingLog.filter((t) => t.campaignId === campaignId);
 };
 
-// ── Get funding stats for a campaign ─────────────────────
-export const getFundingByCampaign = async (campaignId) => {
-  try {
-    const data = await get(`/payments/stats?campaignId=${campaignId}`);
-    return data.transactions || [];
-  } catch {
-    return [];
-  }
+/**
+ * Get total amount raised for a campaign (in-session).
+ * @param {string} campaignId
+ */
+export const getTotalFunded = (campaignId) => {
+  return fundingLog
+    .filter((t) => t.campaignId === campaignId)
+    .reduce((sum, t) => sum + t.amount, 0);
 };
 
-// ── Get total funded for a campaign ──────────────────────
-export const getTotalFunded = async (campaignId) => {
-  try {
-    const data = await get(`/payments/stats?campaignId=${campaignId}`);
-    return data.totalRaised || 0;
-  } catch {
-    return 0;
-  }
-};
-
-// ── Get all transactions ──────────────────────────────────
-export const getAllTransactions = async () => {
-  try {
-    const data = await get('/payments/stats');
-    return data.transactions || [];
-  } catch {
-    return [];
-  }
+/**
+ * Get all transactions (for dashboard).
+ */
+export const getAllTransactions = () => {
+  return [...fundingLog];
 };

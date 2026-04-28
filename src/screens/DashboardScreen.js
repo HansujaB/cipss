@@ -6,9 +6,13 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import StatCard from '../components/StatCard';
 import CampaignCard from '../components/CampaignCard';
+import NavigationHeader from '../components/NavigationHeader';
+import BottomTabBar from '../components/BottomTabBar';
+import SideDrawer from '../components/SideDrawer';
 import { getUserPoints } from '../services/campaignService';
 import {
   getCampaigns,
@@ -27,6 +31,67 @@ export default function DashboardScreen({ navigation }) {
   const [points, setPoints] = useState(0);
   const [topCampaigns, setTopCampaigns] = useState([]);
   const [myCampaigns, setMyCampaigns] = useState([]);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const handleMenuPress = () => {
+    setDrawerOpen(true);
+  };
+
+  const handleCloseDrawer = () => {
+    setDrawerOpen(false);
+  };
+
+  const handleDrawerNavigate = (screenName) => {
+    setDrawerOpen(false);
+    navigation.navigate(screenName);
+  };
+
+  // Menu items - only additional screens NOT in bottom nav
+  const drawerMenuItems = [
+    { key: 'CreateCampaign', label: 'Create Campaign', icon: '➕' },
+    { key: 'CSRMarketplace', label: 'CSR Marketplace', icon: '🏪' },
+    { key: 'ImpactDashboard', label: 'Impact Dashboard', icon: '📊' },
+    { key: 'Network', label: 'Network', icon: '👥' },
+    { key: 'Mentorship', label: 'Mentorship', icon: '👨‍🏫' },
+    { key: 'Streak', label: 'Streak', icon: '🔥' },
+    { key: 'PowerUp', label: 'Power-ups', icon: '⚡' },
+    { key: 'Challenges', label: 'Challenges', icon: '🎯' },
+    { key: 'Profile', label: 'Profile', icon: '👤' },
+  ];
+
+  const handleNotificationPress = () => {
+    // TODO: Navigate to notifications screen
+    Alert.alert('Notifications', 'You have no new notifications');
+  };
+
+  const handleProfilePress = () => {
+    navigation.navigate('Profile');
+  };
+
+  const handleTabPress = (tabKey) => {
+    // Handle tab navigation
+    switch(tabKey) {
+      case 'home':
+        // Already on dashboard
+        break;
+      case 'campaigns':
+        navigation.navigate('Campaigns');
+        break;
+      case 'leaderboard':
+        navigation.navigate('Leaderboard');
+        break;
+      case 'achievements':
+        navigation.navigate('Achievements');
+        break;
+    }
+  };
+
+  const tabs = [
+    { key: 'home', label: 'Home', icon: '🏠' },
+    { key: 'campaigns', label: 'Campaigns', icon: '📋' },
+    { key: 'leaderboard', label: 'Leaderboard', icon: '🏆' },
+    { key: 'achievements', label: 'Achievements', icon: '🎖️' },
+  ];
 
   useEffect(() => {
     loadData();
@@ -60,7 +125,14 @@ export default function DashboardScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <View style={styles.mainContainer}>
+      <NavigationHeader
+        title="CIPSS Dashboard"
+        onMenuPress={handleMenuPress}
+        onNotificationPress={handleNotificationPress}
+        onProfilePress={handleProfilePress}
+      />
+      
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
@@ -122,6 +194,23 @@ export default function DashboardScreen({ navigation }) {
           />
         ))}
 
+        {/* CSR Marketplace CTA */}
+        <TouchableOpacity
+          style={styles.csrCard}
+          onPress={() => navigation.navigate('CSRMarketplace')}
+        >
+          <Text style={styles.csrCardTitle}>💼 CSR Marketplace</Text>
+          <Text style={styles.csrCardDesc}>
+            Discover verified campaigns for your Corporate Social Responsibility initiatives
+          </Text>
+          <View style={styles.csrCardStats}>
+            <Text style={styles.csrStat}>✓ Verified NGOs</Text>
+            <Text style={styles.csrStat}>📊 Impact Tracking</Text>
+            <Text style={styles.csrStat}>📝 Tax Benefits</Text>
+          </View>
+          <Text style={styles.csrCardCta}>Explore CSR Opportunities →</Text>
+        </TouchableOpacity>
+
         {/* CTA */}
         <TouchableOpacity
           style={styles.cta}
@@ -130,13 +219,31 @@ export default function DashboardScreen({ navigation }) {
           <Text style={styles.ctaText}>Browse All Campaigns →</Text>
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+      
+      <BottomTabBar
+        activeTab="home"
+        tabs={tabs}
+        onTabPress={handleTabPress}
+      />
+
+      <SideDrawer
+        isOpen={drawerOpen}
+        onClose={handleCloseDrawer}
+        onNavigate={handleDrawerNavigate}
+        navigation={navigation}
+        menuItems={drawerMenuItems}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F9FAFB' },
-  container: { padding: 16, paddingBottom: 40 },
+  mainContainer: { flex: 1, backgroundColor: '#F9FAFB' },
+  container: { 
+    padding: 16, 
+    paddingBottom: 80, // Account for bottom tab bar
+    flexGrow: 1,
+  },
 
   header: { marginBottom: 20, paddingTop: 10 },
   greeting: { fontSize: 14, color: '#9CA3AF', fontWeight: '500' },
@@ -176,4 +283,42 @@ const styles = StyleSheet.create({
   },
 
   ctaText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+
+  csrCard: {
+    backgroundColor: '#1D0A69',
+    borderRadius: 16,
+    padding: 20,
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  csrCardTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '800',
+    marginBottom: 8,
+  },
+  csrCardDesc: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 13,
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  csrCardStats: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 12,
+  },
+  csrStat: {
+    color: '#4ADE80',
+    fontSize: 11,
+    marginRight: 12,
+    marginBottom: 4,
+  },
+  csrCardCta: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 4,
+  },
 });

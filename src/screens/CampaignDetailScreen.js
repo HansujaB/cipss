@@ -6,15 +6,20 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  Alert,
 } from 'react-native';
 import { getScoreColor, getScoreLabel } from '../utils/impactScore';
 import { domainColors, domainLabels } from '../constants/dummyData';
 import { joinCampaign, leaveCampaign } from '../services/campaignService';
+import NavigationHeader from '../components/NavigationHeader';
+import BottomTabBar from '../components/BottomTabBar';
+import SideDrawer from '../components/SideDrawer';
 
 export default function CampaignDetailScreen({ route, navigation }) {
   const { campaign } = route.params;
 
   const [joined, setJoined] = useState(campaign.joined || false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const scoreColor = getScoreColor(campaign.impactScore);
   const domainColor = domainColors[campaign.domain] || '#888';
@@ -23,6 +28,65 @@ export default function CampaignDetailScreen({ route, navigation }) {
     Math.round((campaign.fundingRaised / campaign.fundingGoal) * 100),
     100
   );
+
+  const handleMenuPress = () => {
+    setDrawerOpen(true);
+  };
+
+  const handleCloseDrawer = () => {
+    setDrawerOpen(false);
+  };
+
+  const handleDrawerNavigate = (screenName) => {
+    setDrawerOpen(false);
+    navigation.navigate(screenName);
+  };
+
+  // Menu items - only additional screens NOT in bottom nav
+  const drawerMenuItems = [
+    { key: 'CreateCampaign', label: 'Create Campaign', icon: '➕' },
+    { key: 'CSRMarketplace', label: 'CSR Marketplace', icon: '🏪' },
+    { key: 'ImpactDashboard', label: 'Impact Dashboard', icon: '📊' },
+    { key: 'Network', label: 'Network', icon: '👥' },
+    { key: 'Mentorship', label: 'Mentorship', icon: '👨‍🏫' },
+    { key: 'Streak', label: 'Streak', icon: '🔥' },
+    { key: 'PowerUp', label: 'Power-ups', icon: '⚡' },
+    { key: 'Challenges', label: 'Challenges', icon: '🎯' },
+    { key: 'Profile', label: 'Profile', icon: '👤' },
+  ];
+
+  const handleNotificationPress = () => {
+    Alert.alert('Notifications', 'You have no new notifications');
+  };
+
+  const handleProfilePress = () => {
+    navigation.navigate('Profile');
+  };
+
+  const handleTabPress = (tabKey) => {
+    // Handle tab navigation
+    switch(tabKey) {
+      case 'home':
+        navigation.navigate('Dashboard');
+        break;
+      case 'campaigns':
+        navigation.navigate('Campaigns');
+        break;
+      case 'leaderboard':
+        navigation.navigate('Leaderboard');
+        break;
+      case 'achievements':
+        navigation.navigate('Achievements');
+        break;
+    }
+  };
+
+  const tabs = [
+    { key: 'home', label: 'Home', icon: '🏠' },
+    { key: 'campaigns', label: 'Campaigns', icon: '📋' },
+    { key: 'leaderboard', label: 'Leaderboard', icon: '🏆' },
+    { key: 'achievements', label: 'Achievements', icon: '🎖️' },
+  ];
 
   const handleJoin = () => {
     joinCampaign(campaign.id);
@@ -52,13 +116,16 @@ export default function CampaignDetailScreen({ route, navigation }) {
   );
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <View style={styles.mainContainer}>
+      <NavigationHeader
+        title="Campaign Details"
+        showBackButton={true}
+        onBackPress={handleMenuPress}
+        onNotificationPress={handleNotificationPress}
+        onProfilePress={handleProfilePress}
+      />
+      
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        
-        {/* Back Button */}
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backText}>← Back</Text>
-        </TouchableOpacity>
 
         {/* Domain + Title */}
         <View style={[styles.domainBadge, { backgroundColor: domainColor + '22', borderColor: domainColor }]}>
@@ -131,22 +198,48 @@ export default function CampaignDetailScreen({ route, navigation }) {
         {/* Fund CTA */}
         <TouchableOpacity
           style={[styles.fundBtn, { backgroundColor: scoreColor }]}
-          onPress={() => navigation.navigate('Funding', { campaign })}
+          onPress={() => navigation.navigate('Funding', {
+            campaign: {
+              id: campaign.id,
+              title: campaign.title,
+              location: campaign.location,
+              domain: campaign.domain,
+              impactScore: campaign.impactScore,
+              fundingGoal: campaign.fundingGoal,
+              fundingRaised: campaign.fundingRaised,
+              description: campaign.description,
+            }
+          })}
         >
           <Text style={styles.fundBtnText}>💳 Fund this Campaign</Text>
         </TouchableOpacity>
 
       </ScrollView>
-    </SafeAreaView>
+      
+      <BottomTabBar
+        activeTab="campaigns"
+        tabs={tabs}
+        onTabPress={handleTabPress}
+      />
+
+      <SideDrawer
+        isOpen={drawerOpen}
+        onClose={handleCloseDrawer}
+        onNavigate={handleDrawerNavigate}
+        navigation={navigation}
+        menuItems={drawerMenuItems}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F9FAFB' },
-  container: { padding: 20, paddingBottom: 40 },
-
-  backBtn: { marginBottom: 16 },
-  backText: { fontSize: 15, color: '#3B82F6', fontWeight: '600' },
+  mainContainer: { flex: 1, backgroundColor: '#F9FAFB' },
+  container: { 
+    padding: 20, 
+    paddingBottom: 80, // Account for bottom tab bar
+    flexGrow: 1,
+  },
 
   domainBadge: {
     alignSelf: 'flex-start',

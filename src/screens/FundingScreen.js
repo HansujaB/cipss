@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,33 +10,125 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
-import { fundCampaign } from '../services/fundingService';
+import {
+  createPaymentOrder,
+  verifyPayment,
+  mockVerifyPayment,
+  calculateFees,
+  openRazorpayCheckout,
+} from '../services/paymentService';
 import { getScoreColor } from '../utils/impactScore';
 
 const QUICK_AMOUNTS = [500, 1000, 2500, 5000];
+const PLATFORM_FEE_RATE = 0.05;
 
 export default function FundingScreen({ route, navigation }) {
   const { campaign } = route.params;
   const [amount, setAmount] = useState('');
   const [donorName, setDonorName] = useState('');
+  const [donorEmail, setDonorEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [txn, setTxn] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [fees, setFees] = useState(null);
 
   const scoreColor = getScoreColor(campaign.impactScore);
 
-  const handleFund = () => {
+  useEffect(() => {
+    const parsed = parseFloat(amount);
+    if (parsed > 0) {
+      setFees(calculateFees(parsed));
+    } else {
+      setFees(null);
+    }
+  }, [amount]);
+
+  const handleFund = async () => {
     const parsed = parseFloat(amount);
     if (!parsed || parsed <= 0) {
       Alert.alert('Invalid Amount', 'Please enter a valid amount greater than 0.');
       return;
     }
-    const result = fundCampaign(campaign.id, parsed, donorName || 'Anonymous');
-    if (result.success) {
-      setTxn(result.transaction);
-      setSubmitted(true);
-    } else {
-      Alert.alert('Error', result.message);
+
+    setLoading(true);
+
+    try {
+      // Create payment order
+      const orderData = await createPaymentOrder(
+        campaign.id,
+        parsed,
+        donorName || 'Anonymous',
+        donorEmail || null
+      );
+
+      // Development mode - use mock verification
+      if (orderData.development) {
+        Alert.alert(
+          'Development Mode',
+          'Razorpay not configured. Using mock payment flow.',
+          [
+            {
+              text: 'Proceed',
+              onPress: async () => {
+                try {
+                  const verifyData = await mockVerifyPayment(orderData.transaction.id);
+                  if (verifyData.success) {
+                    setTxn({
+                      id: verifyData.transaction.id,
+                      amount: parsed,
+                      donorName: donorName || 'Anonymous',
+                      timestamp: new Date().toISOString(),
+                      receipt: verifyData.transaction.receipt,
+                      mock: true,
+                    });
+                    setSubmitted(true);
+                  }
+                } catch (error) {
+                  Alert.alert('Error', error.message);
+                } finally {
+                  setLoading(false);
+                }
+              },
+            },
+          ]
+        );
+        return;
+      }
+
+      // Production - Open Razorpay checkout
+      const paymentResult = await openRazorpayCheckout(
+        orderData.order,
+        orderData.razorpay_key,
+        {
+          name: donorName || 'Anonymous',
+          email: donorEmail,
+          description: `Fund ${campaign.title}`,
+        }
+      );
+
+      // Verify payment
+      const verifyData = await verifyPayment(
+        paymentResult.orderId,
+        paymentResult.paymentId,
+        paymentResult.signature
+      );
+
+      if (verifyData.success) {
+        setTxn({
+          id: verifyData.transaction.id,
+          amount: parsed,
+          donorName: donorName || 'Anonymous',
+          timestamp: new Date().toISOString(),
+          receipt: verifyData.transaction.receipt,
+        });
+        setSubmitted(true);
+      }
+    } catch (error) {
+      Alert.alert('Payment Error', error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -53,7 +145,7 @@ export default function FundingScreen({ route, navigation }) {
             <Text style={styles.txnRow}>Donor: <Text style={styles.txnVal}>{txn.donorName}</Text></Text>
             <Text style={styles.txnRow}>Time: <Text style={styles.txnVal}>{new Date(txn.timestamp).toLocaleTimeString()}</Text></Text>
           </View>
-          <TouchableOpacity style={[styles.backBtn, { backgroundColor: scoreColor }]} onPress={() => navigation.navigate('CampaignList')}>
+          <TouchableOpacity style={[styles.backBtn, { backgroundColor: scoreColor }]} onPress={() => navigation.navigate('MainApp', { screen: 'Campaigns' })}>
             <Text style={styles.backBtnText}>Back to Campaigns</Text>
           </TouchableOpacity>
         </View>
@@ -114,6 +206,36 @@ export default function FundingScreen({ route, navigation }) {
             onChangeText={setDonorName}
           />
 
+          {/* Donor Email */}
+          <Text style={styles.label}>Your Email (optional)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="email@example.com"
+            placeholderTextColor="#9CA3AF"
+            keyboardType="email-address"
+            value={donorEmail}
+            onChangeText={setDonorEmail}
+          />
+
+          {/* Platform Fee Breakdown */}
+          {fees && (
+            <View style={[styles.feesBox, { borderColor: scoreColor }]}>
+              <Text style={styles.feesTitle}>Payment Breakdown</Text>
+              <View style={styles.feeRow}>
+                <Text style={styles.feeLabel}>Donation Amount</Text>
+                <Text style={styles.feeValue}>₹{fees.amount.toLocaleString()}</Text>
+              </View>
+              <View style={styles.feeRow}>
+                <Text style={styles.feeLabel}>Platform Fee (5%)</Text>
+                <Text style={styles.feeValue}>₹{fees.platformFee.toLocaleString()}</Text>
+              </View>
+              <View style={[styles.feeRow, styles.netRow]}>
+                <Text style={styles.netLabel}>NGO Receives</Text>
+                <Text style={[styles.netValue, { color: scoreColor }]}>₹{fees.netAmount.toLocaleString()}</Text>
+              </View>
+            </View>
+          )}
+
           {/* Summary */}
           {amount ? (
             <View style={[styles.summaryBox, { borderColor: scoreColor }]}>
@@ -125,8 +247,16 @@ export default function FundingScreen({ route, navigation }) {
           ) : null}
 
           {/* Submit */}
-          <TouchableOpacity style={[styles.submitBtn, { backgroundColor: scoreColor }]} onPress={handleFund}>
-            <Text style={styles.submitText}>💳 Confirm Funding</Text>
+          <TouchableOpacity 
+            style={[styles.submitBtn, { backgroundColor: scoreColor }]} 
+            onPress={handleFund}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.submitText}>💳 Confirm Funding</Text>
+            )}
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -191,6 +321,48 @@ const styles = StyleSheet.create({
     padding: 16,
     width: '100%',
     marginBottom: 24,
+  },
+  feesBox: {
+    borderWidth: 1.5,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 14,
+    backgroundColor: '#fff',
+  },
+  feesTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#374151',
+    marginBottom: 10,
+  },
+  feeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  feeLabel: {
+    fontSize: 13,
+    color: '#6B7280',
+  },
+  feeValue: {
+    fontSize: 13,
+    color: '#374151',
+    fontWeight: '600',
+  },
+  netRow: {
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    paddingTop: 8,
+    marginTop: 6,
+  },
+  netLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1A1A2E',
+  },
+  netValue: {
+    fontSize: 14,
+    fontWeight: '800',
   },
   txnRow: { fontSize: 13, color: '#9CA3AF', marginBottom: 4 },
   txnVal: { color: '#374151', fontWeight: '600' },
