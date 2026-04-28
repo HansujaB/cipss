@@ -1,0 +1,41 @@
+.container { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+.profileCard { background: linear-gradient(135deg, #1A1A2E 0%, #1D0A69 100%); border-radius: 20px; padding: 32px; display: flex; gap: 24px; align-items: center; }
+.avatar { font-size: 72px; }
+.info { flex: 1; }
+.name { font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 4px; }
+.email { color: #9CA3AF; font-size: 14px; margin-bottom: 12px; }
+.meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.level { background: rgba(245,158,11,0.2); color: #F59E0B; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; }
+.points { background: rgba(99,102,241,0.2); color: #A5B4FC; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; }
+.joinDate { color: #9CA3AF; font-size: 13px; padding: 4px 0; }
+.badges { display: flex; gap: 8px; }
+.badge { font-size: 24px; }
+
+.statsGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.statCard { background: #fff; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.statIcon { font-size: 28px; margin-bottom: 8px; }
+.statValue { font-size: 22px; font-weight: 900; color: #1A1A2E; }
+.statLabel { font-size: 12px; color: #6B7280; margin-top: 4px; }
+
+.section { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.sectionTitle { font-size: 18px; font-weight: 700; color: #1A1A2E; margin-bottom: 16px; }
+
+.quickLinks { display: flex; flex-direction: column; gap: 8px; }
+.quickLink { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 12px; background: #F9FAFB; text-decoration: none; color: #374151; font-weight: 600; font-size: 15px; transition: all 0.2s; }
+.quickLink:hover { background: #F3F4F6; transform: translateX(4px); }
+.quickIcon { font-size: 20px; }
+.arrow { margin-left: auto; color: #9CA3AF; }
+
+.levelCard { }
+.levelInfo { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; font-weight: 700; color: #374151; }
+.currentLevel { color: #F59E0B; }
+.nextLevel { color: #8B5CF6; }
+.levelBar { height: 12px; background: #F3F4F6; border-radius: 6px; overflow: hidden; margin-bottom: 8px; }
+.levelFill { height: 100%; background: linear-gradient(90deg, #1D0A69, #6366F1); border-radius: 6px; }
+.levelMeta { display: flex; justify-content: space-between; font-size: 12px; color: #6B7280; }
+
+@media (max-width: 600px) {
+  .profileCard { flex-direction: column; text-align: center; }
+  .statsGrid { grid-template-columns: repeat(2, 1fr); }
+}

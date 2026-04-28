@@ -5,6 +5,7 @@ import { getScoreColor } from '../utils/impactScore';
 import styles from './Funding.module.css';
 
 const QUICK_AMOUNTS = [500, 1000, 2500, 5000];
+const RAZORPAY_KEY = 'rzp_test_SKouY1M9KggwpT';
 
 export default function Funding() {
   const { id } = useParams();
@@ -12,25 +13,94 @@ export default function Funding() {
   const campaign = campaigns.find(c => c.id === id);
   const [amount, setAmount] = useState('');
   const [donorName, setDonorName] = useState('');
+  const [donorEmail, setDonorEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [txn, setTxn] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState('razorpay');
+  const [loading, setLoading] = useState(false);
 
   if (!campaign) return <div className={styles.notFound}>Campaign not found. <Link to="/campaigns">Go back</Link></div>;
 
   const scoreColor = getScoreColor(campaign.impactScore);
 
-  const handleFund = () => {
+  const handleRazorpay = () => {
     const parsed = parseFloat(amount);
     if (!parsed || parsed <= 0) { alert('Please enter a valid amount.'); return; }
+
+    setLoading(true);
+
+    const options = {
+      key: RAZORPAY_KEY,
+      amount: parsed * 100, // in paise
+      currency: 'INR',
+      name: 'CIPSS',
+      description: `Funding: ${campaign.title}`,
+      image: 'https://cipss-platform-b289f.web.app/favicon.ico',
+      handler: function (response) {
+        const transaction = {
+          id: response.razorpay_payment_id || `TXN_${Date.now()}`,
+          campaignId: campaign.id,
+          amount: parsed,
+          donorName: donorName || 'Anonymous',
+          timestamp: new Date().toISOString(),
+          method: 'Razorpay',
+        };
+        setTxn(transaction);
+        setSubmitted(true);
+        setLoading(false);
+      },
+      prefill: {
+        name: donorName || 'Anonymous',
+        email: donorEmail || '',
+      },
+      theme: { color: '#1D0A69' },
+      modal: {
+        ondismiss: () => setLoading(false),
+      },
+    };
+
+    // Load Razorpay script dynamically
+    if (window.Razorpay) {
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } else {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => {
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      };
+      script.onerror = () => {
+        setLoading(false);
+        alert('Failed to load Razorpay. Using demo mode.');
+        handleDemo(parsed);
+      };
+      document.body.appendChild(script);
+    }
+  };
+
+  const handleDemo = (parsed) => {
     const transaction = {
-      id: Date.now().toString(),
+      id: `DEMO_${Date.now()}`,
       campaignId: campaign.id,
-      amount: parsed,
+      amount: parsed || parseFloat(amount),
       donorName: donorName || 'Anonymous',
       timestamp: new Date().toISOString(),
+      method: 'Demo',
     };
     setTxn(transaction);
     setSubmitted(true);
+    setLoading(false);
+  };
+
+  const handleFund = () => {
+    const parsed = parseFloat(amount);
+    if (!parsed || parsed <= 0) { alert('Please enter a valid amount.'); return; }
+    if (paymentMethod === 'razorpay') {
+      handleRazorpay();
+    } else {
+      handleDemo(parsed);
+    }
   };
 
   if (submitted && txn) {
@@ -43,6 +113,7 @@ export default function Funding() {
         <div className={styles.txnCard}>
           <p className={styles.txnRow}>Transaction ID: <strong>{txn.id}</strong></p>
           <p className={styles.txnRow}>Donor: <strong>{txn.donorName}</strong></p>
+          <p className={styles.txnRow}>Method: <strong>{txn.method}</strong></p>
           <p className={styles.txnRow}>Time: <strong>{new Date(txn.timestamp).toLocaleTimeString()}</strong></p>
         </div>
         <Link to="/campaigns" className={styles.backBtn} style={{ background: scoreColor }}>Back to Campaigns</Link>
@@ -65,9 +136,7 @@ export default function Funding() {
             className={`${styles.quickBtn} ${parseFloat(amount) === q ? styles.quickActive : ''}`}
             style={parseFloat(amount) === q ? { background: scoreColor, borderColor: scoreColor, color: '#fff' } : {}}
             onClick={() => setAmount(q.toString())}
-          >
-            ₹{q.toLocaleString()}
-          </button>
+          >₹{q.toLocaleString()}</button>
         ))}
       </div>
 
@@ -77,14 +146,39 @@ export default function Funding() {
       <label className={styles.label}>Your Name (optional)</label>
       <input className={styles.input} placeholder="Anonymous" value={donorName} onChange={e => setDonorName(e.target.value)} />
 
+      <label className={styles.label}>Your Email (optional)</label>
+      <input className={styles.input} placeholder="email@example.com" type="email" value={donorEmail} onChange={e => setDonorEmail(e.target.value)} />
+
+      {/* Payment Method */}
+      <label className={styles.label}>Payment Method</label>
+      <div className={styles.paymentMethods}>
+        <button
+          className={`${styles.payMethod} ${paymentMethod === 'razorpay' ? styles.payMethodActive : ''}`}
+          onClick={() => setPaymentMethod('razorpay')}
+        >
+          <span>💳</span> Razorpay
+        </button>
+        <button
+          className={`${styles.payMethod} ${paymentMethod === 'demo' ? styles.payMethodActive : ''}`}
+          onClick={() => setPaymentMethod('demo')}
+        >
+          <span>🧪</span> Demo Mode
+        </button>
+      </div>
+
       {amount && (
         <div className={styles.summary} style={{ borderColor: scoreColor }}>
           You are funding <strong>₹{parseFloat(amount).toLocaleString()}</strong> to <strong>{campaign.title}</strong>
         </div>
       )}
 
-      <button className={styles.submitBtn} style={{ background: scoreColor }} onClick={handleFund}>
-        💳 Confirm Funding
+      <button
+        className={styles.submitBtn}
+        style={{ background: loading ? '#9CA3AF' : scoreColor }}
+        onClick={handleFund}
+        disabled={loading}
+      >
+        {loading ? '⏳ Processing...' : paymentMethod === 'razorpay' ? '💳 Pay with Razorpay' : '🧪 Demo Payment'}
       </button>
     </div>
   );

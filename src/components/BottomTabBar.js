@@ -10,7 +10,7 @@ import {
 const BottomTabBar = ({ activeTab, tabs, onTabPress }) => {
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container} accessibilityRole="tabbar">
+      <View style={styles.container} accessibilityRole="toolbar">
         {tabs.map((tab) => (
           <TouchableOpacity
             key={tab.key}

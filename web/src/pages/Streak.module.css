@@ -1,0 +1,43 @@
+.container { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+.header { margin-bottom: 0; }
+.title { font-size: 28px; font-weight: 900; color: #1A1A2E; }
+.subtitle { color: #6B7280; margin-top: 4px; }
+
+.streakCard { background: linear-gradient(135deg, #1A1A2E 0%, #1D0A69 100%); border-radius: 20px; padding: 32px; display: flex; align-items: center; gap: 32px; }
+.streakMain { text-align: center; }
+.streakFire { font-size: 48px; }
+.streakNum { font-size: 72px; font-weight: 900; color: #F59E0B; line-height: 1; }
+.streakLabel { color: #9CA3AF; font-size: 16px; font-weight: 600; }
+.streakStats { display: flex; gap: 32px; flex: 1; justify-content: center; }
+.streakStat { text-align: center; }
+.streakStatVal { font-size: 32px; font-weight: 900; color: #fff; }
+.streakStatLabel { color: #9CA3AF; font-size: 13px; margin-top: 4px; }
+
+.section { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.sectionTitle { font-size: 18px; font-weight: 700; color: #1A1A2E; margin-bottom: 16px; }
+
+.historyGrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+.dayCard { border-radius: 10px; padding: 10px 6px; text-align: center; }
+.activeDay { background: #DCFCE7; }
+.missedDay { background: #FEE2E2; }
+.dayStatus { font-size: 16px; margin-bottom: 4px; }
+.dayDate { font-size: 11px; color: #6B7280; font-weight: 600; }
+
+.milestones { display: flex; flex-direction: column; gap: 12px; }
+.milestone { display: flex; align-items: center; gap: 16px; padding: 16px; border-radius: 12px; background: #F9FAFB; border: 1px solid #E5E7EB; }
+.milestoneReached { background: #DCFCE7; border-color: #22C55E; }
+.milestoneIcon { font-size: 28px; }
+.milestoneInfo { flex: 1; }
+.milestoneName { font-size: 15px; font-weight: 700; color: #1A1A2E; }
+.milestoneDays { font-size: 13px; color: #6B7280; }
+.milestoneReward { font-size: 14px; font-weight: 700; color: #F59E0B; }
+.milestoneCheck { font-size: 20px; }
+.milestoneProgress { flex: 1; }
+.milestoneBar { height: 6px; background: #E5E7EB; border-radius: 3px; overflow: hidden; margin-bottom: 4px; }
+.milestoneBarFill { height: 100%; background: linear-gradient(90deg, #1D0A69, #6366F1); border-radius: 3px; }
+.milestonePct { font-size: 12px; color: #6B7280; text-align: right; }
+
+@media (max-width: 600px) {
+  .streakCard { flex-direction: column; }
+  .historyGrid { grid-template-columns: repeat(4, 1fr); }
+}

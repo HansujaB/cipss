@@ -1,20 +1,31 @@
-.title { font-size: 28px; font-weight: 900; color: #1A1A2E; margin-bottom: 20px; }
-.list { display: flex; flex-direction: column; gap: 10px; max-width: 680px; }
+.container { max-width: 800px; margin: 0 auto; }
+.header { margin-bottom: 24px; }
+.title { font-size: 28px; font-weight: 900; color: #1A1A2E; }
+.subtitle { color: #6B7280; margin-top: 4px; }
 
-.card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background: #fff;
-  border-radius: 14px;
-  padding: 16px;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
-}
+.podium { display: flex; justify-content: center; align-items: flex-end; gap: 16px; margin-bottom: 32px; padding: 24px; background: linear-gradient(135deg, #1A1A2E 0%, #1D0A69 100%); border-radius: 20px; }
+.podiumItem { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.podiumCrown { font-size: 24px; }
+.podiumAvatar { font-size: 36px; }
+.podiumName { color: #fff; font-size: 13px; font-weight: 700; text-align: center; max-width: 100px; }
+.podiumPoints { color: #F59E0B; font-size: 12px; font-weight: 700; }
+.podiumBase { width: 80px; background: rgba(255,255,255,0.15); border-radius: 8px 8px 0 0; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 14px; }
+.first .podiumBase { background: rgba(245,158,11,0.3); }
+.second .podiumBase { background: rgba(156,163,175,0.3); }
+.third .podiumBase { background: rgba(180,83,9,0.3); }
 
-.topCard { border: 1.5px solid #F59E0B; }
+.tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.tab { padding: 10px 20px; border-radius: 12px; border: 1px solid #E5E7EB; background: #fff; color: #6B7280; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.tab:hover { border-color: #1A1A2E; color: #1A1A2E; }
+.tabActive { background: #1A1A2E; color: #fff; border-color: #1A1A2E; }
 
-.rank { font-size: 20px; width: 40px; text-align: center; flex-shrink: 0; }
-.info { flex: 1; }
+.list { display: flex; flex-direction: column; gap: 8px; }
+.row { display: flex; align-items: center; gap: 16px; background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+.topRow { border: 1.5px solid #F59E0B; }
+.myRow { border: 2px solid #6366F1; background: #EEF2FF; }
+.rankCell { font-size: 20px; width: 40px; text-align: center; font-weight: 800; color: #374151; }
+.nameCell { flex: 1; }
 .name { font-size: 15px; font-weight: 700; color: #1A1A2E; }
-.meta { font-size: 12px; color: #6B7280; margin-top: 2px; }
-.points { font-size: 15px; font-weight: 800; color: #1D0A69; }
+.meTag { background: #6366F1; color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-left: 8px; }
+.meta { font-size: 12px; color: #9CA3AF; margin-top: 2px; }
+.pointsCell { font-size: 16px; font-weight: 800; color: #1D0A69; }
