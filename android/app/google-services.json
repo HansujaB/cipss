@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "389213976265",
+    "project_id": "cipss-platform-b289f",
+    "storage_bucket": "cipss-platform-b289f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:389213976265:android:a32dafc6d73e702c4d7f18",
+        "android_client_info": {
+          "package_name": "com.frontend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDGl9WMuRBvjS5NOCKNDZC_K8gHZCVf8pM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
