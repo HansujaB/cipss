@@ -344,7 +344,7 @@ export default function AIMatchingScreen() {
               <View style={styles.settingItem}>
                 <View style={styles.settingInfo}>
                   <Text style={styles.settingLabel}>Auto Matching</Text>
-                  <Text style={styles.settingDescription">Automatically find matches</Text>
+                  <Text style={styles.settingDescription}>Automatically find matches</Text>
                 </View>
                 <TouchableOpacity
                   style={[styles.toggleBtn, settings.autoMatching && styles.toggleBtnOn]}
@@ -359,7 +359,7 @@ export default function AIMatchingScreen() {
               <View style={styles.settingItem}>
                 <View style={styles.settingInfo}>
                   <Text style={styles.settingLabel}>Min Confidence Score</Text>
-                  <Text style={styles.settingDescription">{Math.round(settings.minConfidenceScore * 100)}%</Text>
+                  <Text style={styles.settingDescription}>>{Math.round(settings.minConfidenceScore * 100)}%</Text>
                 </View>
                 <View style={styles.confidenceOptions}>
                   {[0.5, 0.7, 0.8, 0.9].map((level) => (
@@ -385,7 +385,7 @@ export default function AIMatchingScreen() {
               <View style={styles.settingItem}>
                 <View style={styles.settingInfo}>
                   <Text style={styles.settingLabel}>Max Recommendations</Text>
-                  <Text style={styles.settingDescription">{settings.maxRecommendations} per day</Text>
+                  <Text style={styles.settingDescription}>>{settings.maxRecommendations} per day</Text>
                 </View>
                 <View style={styles.recommendationOptions}>
                   {[3, 5, 10, 15].map((count) => (
@@ -411,7 +411,7 @@ export default function AIMatchingScreen() {
               <View style={styles.settingItem}>
                 <View style={styles.settingInfo}>
                   <Text style={styles.settingLabel}>Update Frequency</Text>
-                  <Text style={styles.settingDescription">{settings.updateFrequency}</Text>
+                  <Text style={styles.settingDescription}>>{settings.updateFrequency}</Text>
                 </View>
                 <View style={styles.frequencyOptions}>
                   {['hourly', 'daily', 'weekly'].map((freq) => (
@@ -437,7 +437,7 @@ export default function AIMatchingScreen() {
               <View style={styles.settingItem}>
                 <View style={styles.settingInfo}>
                   <Text style={styles.settingLabel}>Notify New Matches</Text>
-                  <Text style={styles.settingDescription">Get notifications for new matches</Text>
+                  <Text style={styles.settingDescription}>>Get notifications for new matches</Text>
                 </View>
                 <TouchableOpacity
                   style={[styles.toggleBtn, settings.notifyNewMatches && styles.toggleBtnOn]}
@@ -947,7 +947,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
 
-  toggleBtnOn && {
+  toggleBtnTextOn: {
     color: '#FFFFFF',
   },
 

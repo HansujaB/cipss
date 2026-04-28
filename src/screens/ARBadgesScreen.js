@@ -823,7 +823,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
 
-  toggleBtnOn && {
+  toggleBtnTextOn: {
     color: '#FFFFFF',
   },
 

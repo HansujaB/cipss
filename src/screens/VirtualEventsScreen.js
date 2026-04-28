@@ -147,11 +147,11 @@ export default function VirtualEventsScreen() {
         <View style={styles.eventStats}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{item.registration.currentRegistrations}</Text>
-            <Text style={styles.statLabel">Registered</Text>
+            <Text style={styles.statLabel}>>Registered</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{item.duration}</Text>
-            <Text style={styles.statLabel">Minutes</Text>
+            <Text style={styles.statLabel}>>Minutes</Text>
           </View>
         </View>
         
@@ -345,10 +345,10 @@ export default function VirtualEventsScreen() {
           <ScrollView style={styles.createContainer} showsVerticalScrollIndicator={false}>
             <View style={styles.createSection}>
               <Text style={styles.createTitle}>Create Virtual Event</Text>
-              <Text style={styles.createDescription">Host your own virtual event or webinar</Text>
+              <Text style={styles.createDescription}>>Host your own virtual event or webinar</Text>
               
               <View style={styles.formSection}>
-                <Text style={styles.formLabel">Event Title</Text>
+                <Text style={styles.formLabel}>>Event Title</Text>
                 <TextInput
                   style={styles.formInput}
                   placeholder="Enter event title"
@@ -356,7 +356,7 @@ export default function VirtualEventsScreen() {
               </View>
               
               <View style={styles.formSection}>
-                <Text style={styles.formLabel">Description</Text>
+                <Text style={styles.formLabel}>>Description</Text>
                 <TextInput
                   style={[styles.formInput, styles.formInputMultiline]}
                   placeholder="Describe your event"
@@ -366,7 +366,7 @@ export default function VirtualEventsScreen() {
               </View>
               
               <View style={styles.formSection}>
-                <Text style={styles.formLabel">Event Type</Text>
+                <Text style={styles.formLabel}>>Event Type</Text>
                 <View style={styles.eventTypeOptions}>
                   {['webinar', 'workshop', 'conference', 'panel'].map((type) => (
                     <TouchableOpacity key={type} style={styles.eventTypeOption}>
@@ -379,7 +379,7 @@ export default function VirtualEventsScreen() {
               </View>
               
               <View style={styles.formSection}>
-                <Text style={styles.formLabel">Platform</Text>
+                <Text style={styles.formLabel}>>Platform</Text>
                 <View style={styles.platformOptions}>
                   {platforms.map((platform) => (
                     <TouchableOpacity key={platform.id} style={styles.platformOption}>
@@ -390,7 +390,7 @@ export default function VirtualEventsScreen() {
               </View>
               
               <View style={styles.formSection}>
-                <Text style={styles.formLabel">Date & Time</Text>
+                <Text style={styles.formLabel}>>Date & Time</Text>
                 <TextInput
                   style={styles.formInput}
                   placeholder="Select date and time"
@@ -398,7 +398,7 @@ export default function VirtualEventsScreen() {
               </View>
               
               <View style={styles.formSection}>
-                <Text style={styles.formLabel">Duration (minutes)</Text>
+                <Text style={styles.formLabel}>>Duration (minutes)</Text>
                 <TextInput
                   style={styles.formInput}
                   placeholder="60"
@@ -487,10 +487,10 @@ export default function VirtualEventsScreen() {
                 <Text style={styles.detailText}>
                   {new Date(selectedEvent.startTime).toLocaleDateString()} at {new Date(selectedEvent.startTime).toLocaleTimeString()}
                 </Text>
-                <Text style={styles.detailText">
+                <Text style={styles.detailText}>>
                   Duration: {selectedEvent.duration} minutes
                 </Text>
-                <Text style={styles.detailText">Timezone: {selectedEvent.timezone}</Text>
+                <Text style={styles.detailText}>>Timezone: {selectedEvent.timezone}</Text>
               </View>
               
               <View style={styles.eventDetailSection}>
@@ -500,7 +500,7 @@ export default function VirtualEventsScreen() {
                     <Text style={styles.speakerDetailAvatar}>{speaker.avatar}</Text>
                     <View style={styles.speakerDetailInfo}>
                       <Text style={styles.speakerDetailName}>{speaker.name}</Text>
-                      <Text style={styles.speakerDetailTitle">{speaker.title}</Text>
+                      <Text style={styles.speakerDetailTitle}>>{speaker.title}</Text>
                       <Text style={styles.speakerDetailCompany}>{speaker.company}</Text>
                     </View>
                   </View>
@@ -509,10 +509,10 @@ export default function VirtualEventsScreen() {
               
               <View style={styles.eventDetailSection}>
                 <Text style={styles.detailSectionTitle}>Registration</Text>
-                <Text style={styles.detailText">
+                <Text style={styles.detailText}>>
                   {selectedEvent.registration.currentRegistrations} / {selectedEvent.registration.maxAttendees} registered
                 </Text>
-                <Text style={styles.detailText">
+                <Text style={styles.detailText}>>
                   Deadline: {new Date(selectedEvent.registration.deadline).toLocaleDateString()}
                 </Text>
               </View>
@@ -569,7 +569,7 @@ export default function VirtualEventsScreen() {
             <View style={styles.registrationForm}>
               {selectedEvent?.registration.formFields.map((field) => (
                 <View key={field} style={styles.formSection}>
-                  <Text style={styles.formLabel">
+                  <Text style={styles.formLabel}>>
                     {field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' ')}
                   </Text>
                   <TextInput

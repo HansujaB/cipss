@@ -1,0 +1,112 @@
+.header { margin-bottom: 20px; }
+.title { font-size: 28px; font-weight: 800; color: #1A1A2E; }
+.sub { font-size: 13px; color: #9CA3AF; margin-top: 2px; }
+
+.search {
+  width: 100%;
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #1A1A2E;
+  margin-bottom: 14px;
+  outline: none;
+  font-family: inherit;
+}
+
+.search:focus { border-color: #1A1A2E; }
+
+.filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+
+.filterBtn {
+  padding: 7px 14px;
+  border-radius: 20px;
+  background: #F3F4F6;
+  border: none;
+  font-size: 13px;
+  color: #6B7280;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.filterBtn:hover { background: #E5E7EB; }
+.active { background: #1A1A2E !important; color: #fff !important; font-weight: 700; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.domainBadge {
+  align-self: flex-start;
+  border: 1px solid;
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.cardTitle { font-size: 17px; font-weight: 700; color: #1A1A2E; }
+.cardLocation { font-size: 13px; color: #6B7280; }
+.cardDesc { font-size: 13px; color: #6B7280; line-height: 1.6; }
+
+.scoreBadge {
+  border: 1px solid;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  align-self: flex-start;
+}
+
+.fundingBar { height: 6px; background: #F3F4F6; border-radius: 3px; overflow: hidden; }
+.fundingFill { height: 100%; border-radius: 3px; }
+.fundingMeta { display: flex; justify-content: space-between; font-size: 12px; color: #6B7280; }
+.volunteers { font-size: 12px; color: #9CA3AF; }
+
+.actions { display: flex; gap: 8px; margin-top: 8px; }
+
+.detailBtn {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  border-radius: 10px;
+  background: #F3F4F6;
+  color: #1A1A2E;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+
+.detailBtn:hover { background: #E5E7EB; }
+
+.fundBtn {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  transition: opacity 0.15s;
+}
+
+.fundBtn:hover { opacity: 0.85; }
+
+.empty { color: #9CA3AF; text-align: center; padding: 40px; grid-column: 1/-1; }
+
+@media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }

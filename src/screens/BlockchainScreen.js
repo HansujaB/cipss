@@ -454,7 +454,7 @@ export default function BlockchainScreen() {
               <View style={styles.settingItem}>
                 <View style={styles.settingInfo}>
                   <Text style={styles.settingLabel}>Public by Default</Text>
-                  <Text style={styles.settingDescription">Make achievements public automatically</Text>
+                  <Text style={styles.settingDescription}>>Make achievements public automatically</Text>
                 </View>
                 <TouchableOpacity
                   style={[
@@ -472,7 +472,7 @@ export default function BlockchainScreen() {
               <View style={styles.settingItem}>
                 <View style={styles.settingInfo}>
                   <Text style={styles.settingLabel}>Transferable Achievements</Text>
-                  <Text style={styles.settingDescription">Allow NFT transfers</Text>
+                  <Text style={styles.settingDescription}>>Allow NFT transfers</Text>
                 </View>
                 <TouchableOpacity
                   style={[
@@ -490,7 +490,7 @@ export default function BlockchainScreen() {
               <View style={styles.settingItem}>
                 <View style={styles.settingInfo}>
                   <Text style={styles.settingLabel}>Gas Optimization</Text>
-                  <Text style={styles.settingDescription">Optimize transaction costs</Text>
+                  <Text style={styles.settingDescription}>>Optimize transaction costs</Text>
                 </View>
                 <TouchableOpacity
                   style={[
@@ -508,7 +508,7 @@ export default function BlockchainScreen() {
               <View style={styles.settingItem}>
                 <View style={styles.settingInfo}>
                   <Text style={styles.settingLabel}>Verification Threshold</Text>
-                  <Text style={styles.settingDescription">{settings.notificationThreshold} verifications</Text>
+                  <Text style={styles.settingDescription}>>{settings.notificationThreshold} verifications</Text>
                 </View>
                 <View style={styles.thresholdOptions}>
                   {[3, 5, 10].map((threshold) => (
@@ -1264,7 +1264,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
 
-  toggleBtnOn && {
+  toggleBtnTextOn: {
     color: '#FFFFFF',
   },
 

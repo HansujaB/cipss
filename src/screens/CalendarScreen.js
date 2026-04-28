@@ -358,7 +358,7 @@ export default function CalendarScreen() {
                 />
               </View>
               <View style={styles.syncOption}>
-                <Text style={styles.syncLabel">Sync new events</Text>
+                <Text style={styles.syncLabel}>>Sync new events</Text>
                 <Switch
                   value={calendarSettings.sync.syncNewEvents}
                   onValueChange={(value) => {
@@ -380,7 +380,7 @@ export default function CalendarScreen() {
               <View style={styles.settingSection}>
                 <Text style={styles.settingSectionTitle}>Notifications</Text>
                 <View style={styles.settingOption}>
-                  <Text style={styles.settingLabel">Email reminders</Text>
+                  <Text style={styles.settingLabel}>>Email reminders</Text>
                   <Switch
                     value={calendarSettings.notifications.emailReminders}
                     onValueChange={(value) => {
@@ -390,7 +390,7 @@ export default function CalendarScreen() {
                   />
                 </View>
                 <View style={styles.settingOption}>
-                  <Text style={styles.settingLabel">Push notifications</Text>
+                  <Text style={styles.settingLabel}>>Push notifications</Text>
                   <Switch
                     value={calendarSettings.notifications.pushNotifications}
                     onValueChange={(value) => {
@@ -404,7 +404,7 @@ export default function CalendarScreen() {
               <View style={styles.settingSection}>
                 <Text style={styles.settingSectionTitle}>Privacy</Text>
                 <View style={styles.settingOption}>
-                  <Text style={styles.settingLabel">Share availability</Text>
+                  <Text style={styles.settingLabel}>>Share availability</Text>
                   <Switch
                     value={calendarSettings.privacy.shareAvailability}
                     onValueChange={(value) => {
@@ -414,7 +414,7 @@ export default function CalendarScreen() {
                   />
                 </View>
                 <View style={styles.settingOption}>
-                  <Text style={styles.settingLabel">Show busy status</Text>
+                  <Text style={styles.settingLabel}>>Show busy status</Text>
                   <Switch
                     value={calendarSettings.privacy.showBusyStatus}
                     onValueChange={(value) => {
@@ -489,7 +489,7 @@ export default function CalendarScreen() {
                 <Text style={styles.detailText}>
                   {new Date(selectedEvent.startTime).toLocaleDateString()} at {new Date(selectedEvent.startTime).toLocaleTimeString()}
                 </Text>
-                <Text style={styles.detailText">
+                <Text style={styles.detailText}>>
                   Duration: {Math.round((new Date(selectedEvent.endTime) - new Date(selectedEvent.startTime)) / (1000 * 60 * 60))} hours
                 </Text>
               </View>

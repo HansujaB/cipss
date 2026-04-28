@@ -332,7 +332,7 @@ export default function LocalizationScreen() {
               
               <View style={styles.previewSection}>
                 <Text style={styles.previewSectionTitle}>Text Direction</Text>
-                <Text style={styles.directionText}>
+                <Text style={[styles.directionText, isRTL && styles.directionTextRTL]}>
                   This text should appear {isRTL ? 'right-to-left' : 'left-to-right'}
                 </Text>
               </View>
@@ -399,7 +399,7 @@ export default function LocalizationScreen() {
               <View style={styles.settingItem}>
                 <View style={styles.settingInfo}>
                   <Text style={styles.settingLabel}>Save Language Preference</Text>
-                  <Text style={styles.settingDescription">Remember user's language choice</Text>
+                  <Text style={styles.settingDescription}>>Remember user's language choice</Text>
                 </View>
                 <Switch
                   value={settings.saveLanguagePreference}
@@ -410,7 +410,7 @@ export default function LocalizationScreen() {
               <View style={styles.settingItem}>
                 <View style={styles.settingInfo}>
                   <Text style={styles.settingLabel}>Use Device Language</Text>
-                  <Text style={styles.settingDescription">Auto-detect device language</Text>
+                  <Text style={styles.settingDescription}>>Auto-detect device language</Text>
                 </View>
                 <Switch
                   value={settings.useDeviceLanguage}
@@ -421,7 +421,7 @@ export default function LocalizationScreen() {
               <View style={styles.settingItem}>
                 <View style={styles.settingInfo}>
                   <Text style={styles.settingLabel}>Show Language Switcher</Text>
-                  <Text style={styles.settingDescription">Display language selection UI</Text>
+                  <Text style={styles.settingDescription}>>Display language selection UI</Text>
                 </View>
                 <Switch
                   value={settings.showLanguageSwitcher}
@@ -432,7 +432,7 @@ export default function LocalizationScreen() {
               <View style={styles.settingItem}>
                 <View style={styles.settingInfo}>
                   <Text style={styles.settingLabel}>Enable RTL Support</Text>
-                  <Text style={styles.settingDescription">Right-to-left text direction</Text>
+                  <Text style={styles.settingDescription}>>Right-to-left text direction</Text>
                 </View>
                 <Switch
                   value={settings.enableRTL}
@@ -577,11 +577,11 @@ export default function LocalizationScreen() {
               <View style={styles.languageDetailStats}>
                 <View style={styles.detailStatItem}>
                   <Text style={styles.detailStatValue}>{selectedLanguage.completion}%</Text>
-                  <Text style={styles.detailStatLabel">Completion</Text>
+                  <Text style={styles.detailStatLabel}>>Completion</Text>
                 </View>
                 <View style={styles.detailStatItem}>
-                  <Text style={styles.detailStatValue">{selectedLanguage.rtl ? 'Yes' : 'No'}</Text>
-                  <Text style={styles.detailStatLabel">RTL Support</Text>
+                  <Text style={styles.detailStatValue}>>{selectedLanguage.rtl ? 'Yes' : 'No'}</Text>
+                  <Text style={styles.detailStatLabel}>>RTL Support</Text>
                 </View>
               </View>
               
@@ -986,7 +986,11 @@ const styles = StyleSheet.create({
   directionText: {
     fontSize: 16,
     color: '#1A1A2E',
-    textAlign: isRTL ? 'right' : 'left',
+    textAlign: 'left',
+  },
+
+  directionTextRTL: {
+    textAlign: 'right',
   },
 
   analyticsContainer: {

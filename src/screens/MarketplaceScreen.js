@@ -361,15 +361,15 @@ export default function MarketplaceScreen() {
             <View style={styles.statsSection}>
               <View style={styles.statCard}>
                 <Text style={styles.statValue}>2</Text>
-                <Text style={styles.statLabel">Active Services</Text>
+                <Text style={styles.statLabel}>>Active Services</Text>
               </View>
               <View style={styles.statCard}>
                 <Text style={styles.statValue}>$850</Text>
-                <Text style={styles.statLabel">Total Earnings</Text>
+                <Text style={styles.statLabel}>>Total Earnings</Text>
               </View>
               <View style={styles.statCard}>
                 <Text style={styles.statValue}>4.8</Text>
-                <Text style={styles.statLabel">Average Rating</Text>
+                <Text style={styles.statLabel}>>Average Rating</Text>
               </View>
             </View>
             
@@ -429,10 +429,10 @@ export default function MarketplaceScreen() {
           <ScrollView style={styles.createContainer} showsVerticalScrollIndicator={false}>
             <View style={styles.createSection}>
               <Text style={styles.createTitle}>Create New Service</Text>
-              <Text style={styles.createDescription">Offer your skills to help others</Text>
+              <Text style={styles.createDescription}>>Offer your skills to help others</Text>
               
               <View style={styles.formSection}>
-                <Text style={styles.formLabel">Service Title</Text>
+                <Text style={styles.formLabel}>>Service Title</Text>
                 <TextInput
                   style={styles.formInput}
                   placeholder="Enter service title"
@@ -440,7 +440,7 @@ export default function MarketplaceScreen() {
               </View>
               
               <View style={styles.formSection}>
-                <Text style={styles.formLabel">Description</Text>
+                <Text style={styles.formLabel}>>Description</Text>
                 <TextInput
                   style={[styles.formInput, styles.formInputMultiline]}
                   placeholder="Describe your service"
@@ -450,7 +450,7 @@ export default function MarketplaceScreen() {
               </View>
               
               <View style={styles.formSection}>
-                <Text style={styles.formLabel">Category</Text>
+                <Text style={styles.formLabel}>>Category</Text>
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -468,7 +468,7 @@ export default function MarketplaceScreen() {
               </View>
               
               <View style={styles.formSection}>
-                <Text style={styles.formLabel">Pricing</Text>
+                <Text style={styles.formLabel}>>Pricing</Text>
                 <View style={styles.pricingInputs}>
                   <TextInput
                     style={[styles.formInput, styles.priceInput]}
@@ -584,7 +584,7 @@ export default function MarketplaceScreen() {
                   ${selectedService.pricing.rate}/{selectedService.pricing.type === 'hourly' ? 'hour' : selectedService.pricing.type}
                 </Text>
                 {selectedService.pricing.minimumHours && (
-                  <Text style={styles.minimumHours">Minimum {selectedService.pricing.minimumHours} hours</Text>
+                  <Text style={styles.minimumHours}>>Minimum {selectedService.pricing.minimumHours} hours</Text>
                 )}
               </View>
               
@@ -593,8 +593,8 @@ export default function MarketplaceScreen() {
                 <Text style={styles.availabilityDetail}>
                   {selectedService.availability.hoursPerWeek} hours/week
                 </Text>
-                <Text style={styles.timezoneDetail">Timezone: {selectedService.availability.timezone}</Text>
-                <Text style={styles.responseTimeDetail">Response time: {selectedService.availability.responseTime}</Text>
+                <Text style={styles.timezoneDetail}>>Timezone: {selectedService.availability.timezone}</Text>
+                <Text style={styles.responseTimeDetail}>>Response time: {selectedService.availability.responseTime}</Text>
               </View>
               
               <View style={styles.serviceDetailActions}>
@@ -655,10 +655,10 @@ export default function MarketplaceScreen() {
           
           <View style={styles.inquiryContent}>
             <Text style={styles.inquiryServiceTitle}>{selectedService?.title}</Text>
-            <Text style={styles.inquiryProvider">by {selectedService?.providerName}</Text>
+            <Text style={styles.inquiryProvider}>>by {selectedService?.providerName}</Text>
             
             <View style={styles.inquiryForm}>
-              <Text style={styles.formLabel">Your Message</Text>
+              <Text style={styles.formLabel}>>Your Message</Text>
               <TextInput
                 style={[styles.formInput, styles.inquiryInput]}
                 placeholder="Tell them about your project..."
@@ -697,16 +697,16 @@ export default function MarketplaceScreen() {
           
           <View style={styles.exchangeContent}>
             <Text style={styles.exchangeServiceTitle}>{selectedService?.title}</Text>
-            <Text style={styles.exchangeProvider">by {selectedService?.providerName}</Text>
+            <Text style={styles.exchangeProvider}>>by {selectedService?.providerName}</Text>
             
             <View style={styles.exchangeForm}>
-              <Text style={styles.formLabel">Your Service to Exchange</Text>
+              <Text style={styles.formLabel}>>Your Service to Exchange</Text>
               <TextInput
                 style={styles.formInput}
                 placeholder="What service can you offer?"
               />
               
-              <Text style={styles.formLabel">Exchange Details</Text>
+              <Text style={styles.formLabel}>>Exchange Details</Text>
               <TextInput
                 style={[styles.formInput, styles.exchangeInput]}
                 placeholder="Describe the exchange terms..."
@@ -714,7 +714,7 @@ export default function MarketplaceScreen() {
                 numberOfLines={4}
               />
               
-              <Text style={styles.formLabel">Duration</Text>
+              <Text style={styles.formLabel}>>Duration</Text>
               <TextInput
                 style={styles.formInput}
                 placeholder="e.g., 1 month, 2 weeks"

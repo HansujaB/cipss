@@ -1,0 +1,75 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.nav {
+  background: #fff;
+  border-bottom: 1px solid #E5E7EB;
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+}
+
+.navBrand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navLogo { font-size: 22px; }
+
+.navTitle {
+  font-size: 18px;
+  font-weight: 900;
+  color: #1A1A2E;
+}
+
+.navSub {
+  font-size: 11px;
+  color: #9CA3AF;
+  font-weight: 500;
+  margin-left: 4px;
+}
+
+.navLinks {
+  display: flex;
+  gap: 4px;
+}
+
+.navLink {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6B7280;
+  transition: all 0.15s;
+}
+
+.navLink:hover { background: #F3F4F6; color: #1A1A2E; }
+
+.active {
+  background: #1A1A2E !important;
+  color: #fff !important;
+}
+
+.main {
+  flex: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 24px 16px;
+}
+
+@media (max-width: 600px) {
+  .navSub { display: none; }
+  .navLink { padding: 6px 10px; font-size: 12px; }
+  .main { padding: 16px 12px; }
+}

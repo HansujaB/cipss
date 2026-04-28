@@ -335,7 +335,7 @@ export default function AnalyticsScreen() {
                 <Text style={styles.campaignStatValue}>{(campaignAnalytics.performance.successRate * 100).toFixed(1)}%</Text>
               </View>
               <View style={styles.campaignStatCard}>
-                <Text style={styles.campaignStatLabel">Avg Participants</Text>
+                <Text style={styles.campaignStatLabel}>>Avg Participants</Text>
                 <Text style={styles.campaignStatValue}>{campaignAnalytics.performance.averageParticipants}</Text>
               </View>
             </View>
@@ -365,7 +365,7 @@ export default function AnalyticsScreen() {
                 <Text style={styles.impactValue}>{campaignAnalytics.impactMetrics.totalHours.toLocaleString()}</Text>
               </View>
               <View style={styles.impactCard}>
-                <Text style={styles.impactLabel">Total Beneficiaries</Text>
+                <Text style={styles.impactLabel}>>Total Beneficiaries</Text>
                 <Text style={styles.impactValue}>{campaignAnalytics.impactMetrics.totalBeneficiaries.toLocaleString()}</Text>
               </View>
             </View>
@@ -408,11 +408,11 @@ export default function AnalyticsScreen() {
                 <Text style={styles.profitabilityValue}>{(financialAnalytics.profitability.grossMargin * 100).toFixed(1)}%</Text>
               </View>
               <View style={styles.profitabilityCard}>
-                <Text style={styles.profitabilityLabel">Net Margin</Text>
+                <Text style={styles.profitabilityLabel}>>Net Margin</Text>
                 <Text style={styles.profitabilityValue}>{(financialAnalytics.profitability.netMargin * 100).toFixed(1)}%</Text>
               </View>
               <View style={styles.profitabilityCard}>
-                <Text style={styles.profitabilityLabel">ROI</Text>
+                <Text style={styles.profitabilityLabel}>>ROI</Text>
                 <Text style={styles.profitabilityValue}>{(financialAnalytics.profitability.roi * 100).toFixed(1)}%</Text>
               </View>
             </View>
@@ -437,7 +437,7 @@ export default function AnalyticsScreen() {
               <View style={styles.churnCard}>
                 <Text style={styles.churnLabel}>Current Risk</Text>
                 <Text style={styles.churnValue}>{(predictiveAnalytics.userChurn.currentRisk * 100).toFixed(1)}%</Text>
-                <Text style={styles.churnPrediction">{predictiveAnalytics.userChurn.predictedChurn} users at risk</Text>
+                <Text style={styles.churnPrediction}>>{predictiveAnalytics.userChurn.predictedChurn} users at risk</Text>
               </View>
               
               <Text style={styles.subsectionTitle}>Risk Factors</Text>
@@ -464,11 +464,11 @@ export default function AnalyticsScreen() {
                 <Text style={styles.forecastValue}>{predictiveAnalytics.growthForecast.nextMonthUsers.toLocaleString()}</Text>
               </View>
               <View style={styles.forecastCard}>
-                <Text style={styles.forecastLabel">Next Quarter Revenue</Text>
+                <Text style={styles.forecastLabel}>>Next Quarter Revenue</Text>
                 <Text style={styles.forecastValue}>${(predictiveAnalytics.growthForecast.nextQuarterRevenue / 1000000).toFixed(1)}M</Text>
               </View>
               <View style={styles.forecastCard}>
-                <Text style={styles.forecastLabel">Yearly Growth Rate</Text>
+                <Text style={styles.forecastLabel}>>Yearly Growth Rate</Text>
                 <Text style={styles.forecastValue}>{(predictiveAnalytics.growthForecast.yearlyGrowthRate * 100).toFixed(1)}%</Text>
               </View>
             </View>
@@ -529,44 +529,44 @@ export default function AnalyticsScreen() {
               <View style={styles.settingSection}>
                 <Text style={styles.settingSectionTitle}>Dashboard Settings</Text>
                 <View style={styles.settingItem}>
-                  <Text style={styles.settingLabel">Refresh Interval</Text>
-                  <Text style={styles.settingValue">{settings.dashboard.refreshInterval}s</Text>
+                  <Text style={styles.settingLabel}>>Refresh Interval</Text>
+                  <Text style={styles.settingValue}>>{settings.dashboard.refreshInterval}s</Text>
                 </View>
                 <View style={styles.settingItem}>
-                  <Text style={styles.settingLabel">Default Time Range</Text>
-                  <Text style={styles.settingValue">{settings.dashboard.defaultTimeRange}</Text>
+                  <Text style={styles.settingLabel}>>Default Time Range</Text>
+                  <Text style={styles.settingValue}>>{settings.dashboard.defaultTimeRange}</Text>
                 </View>
                 <View style={styles.settingItem}>
-                  <Text style={styles.settingLabel">Real-time Data</Text>
-                  <Text style={styles.settingValue">{settings.dashboard.showRealTimeData ? 'Enabled' : 'Disabled'}</Text>
+                  <Text style={styles.settingLabel}>>Real-time Data</Text>
+                  <Text style={styles.settingValue}>>{settings.dashboard.showRealTimeData ? 'Enabled' : 'Disabled'}</Text>
                 </View>
               </View>
               
               <View style={styles.settingSection}>
                 <Text style={styles.settingSectionTitle}>Alert Settings</Text>
                 <View style={styles.settingItem}>
-                  <Text style={styles.settingLabel">Email Alerts</Text>
-                  <Text style={styles.settingValue">{settings.alerts.enableEmailAlerts ? 'Enabled' : 'Disabled'}</Text>
+                  <Text style={styles.settingLabel}>>Email Alerts</Text>
+                  <Text style={styles.settingValue}>>{settings.alerts.enableEmailAlerts ? 'Enabled' : 'Disabled'}</Text>
                 </View>
                 <View style={styles.settingItem}>
-                  <Text style={styles.settingLabel">Server Load Threshold</Text>
-                  <Text style={styles.settingValue">{(settings.alerts.alertThresholds.serverLoad * 100).toFixed(0)}%</Text>
+                  <Text style={styles.settingLabel}>>Server Load Threshold</Text>
+                  <Text style={styles.settingValue}>>{(settings.alerts.alertThresholds.serverLoad * 100).toFixed(0)}%</Text>
                 </View>
               </View>
               
               <View style={styles.settingSection}>
                 <Text style={styles.settingSectionTitle}>Export Settings</Text>
                 <View style={styles.settingItem}>
-                  <Text style={styles.settingLabel">CSV Export</Text>
-                  <Text style={styles.settingValue">{settings.exports.enableCsvExport ? 'Enabled' : 'Disabled'}</Text>
+                  <Text style={styles.settingLabel}>>CSV Export</Text>
+                  <Text style={styles.settingValue}>>{settings.exports.enableCsvExport ? 'Enabled' : 'Disabled'}</Text>
                 </View>
                 <View style={styles.settingItem}>
-                  <Text style={styles.settingLabel">PDF Export</Text>
-                  <Text style={styles.settingValue">{settings.exports.enablePdfExport ? 'Enabled' : 'Disabled'}</Text>
+                  <Text style={styles.settingLabel}>>PDF Export</Text>
+                  <Text style={styles.settingValue}>>{settings.exports.enablePdfExport ? 'Enabled' : 'Disabled'}</Text>
                 </View>
                 <View style={styles.settingItem}>
-                  <Text style={styles.settingLabel">Default Format</Text>
-                  <Text style={styles.settingValue">{settings.exports.defaultFormat.toUpperCase()}</Text>
+                  <Text style={styles.settingLabel}>>Default Format</Text>
+                  <Text style={styles.settingValue}>>{settings.exports.defaultFormat.toUpperCase()}</Text>
                 </View>
               </View>
             </View>
