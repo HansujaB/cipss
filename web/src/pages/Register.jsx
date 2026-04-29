@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import API_BASE_URL from '../config/api';
 import styles from './Auth.module.css';
-
-const BACKEND_URL = 'https://cipss-backend-416772230892.us-central1.run.app/api/v1';
 const ROLES = [
   { key: 'volunteer', label: 'Volunteer', icon: '🙋', desc: 'Join campaigns and make impact' },
-  { key: 'ngo', label: 'NGO', icon: '🏢', desc: 'Create and manage campaigns' },
-  { key: 'donor', label: 'Donor', icon: '💰', desc: 'Fund campaigns you care about' },
+  { key: 'ngo_admin', label: 'NGO', icon: '🏢', desc: 'Create and manage campaigns' },
+  { key: 'company', label: 'CSR Company', icon: '💰', desc: 'Fund campaigns you care about' },
+  { key: 'influencer', label: 'Influencer', icon: '📱', desc: 'Promote verified campaigns' },
 ];
 
 export default function Register() {
@@ -23,7 +23,7 @@ export default function Register() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${BACKEND_URL}/auth/register`, {
+      const res = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password, role }),

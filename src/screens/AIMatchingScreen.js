@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -43,18 +43,18 @@ export default function AIMatchingScreen() {
     { key: 'settings', label: 'Settings', icon: '⚙️' },
   ];
 
-  useEffect(() => {
-    loadRecommendations();
-  }, []);
-
-  const loadRecommendations = () => {
+  const loadRecommendations = useCallback(() => {
     setLoading(true);
     const result = getRecommendationsForVolunteer(currentVolunteer, 5);
     if (result.success) {
       setRecommendations(result.recommendations);
     }
     setLoading(false);
-  };
+  }, [currentVolunteer]);
+
+  useEffect(() => {
+    loadRecommendations();
+  }, [loadRecommendations]);
 
   const handleAcceptMatch = (opportunityId) => {
     Alert.alert(

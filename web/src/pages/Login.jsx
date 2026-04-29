@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import API_BASE_URL from '../config/api';
 import styles from './Auth.module.css';
-
-const BACKEND_URL = 'https://cipss-backend-416772230892.us-central1.run.app/api/v1';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -16,7 +15,7 @@ export default function Login() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${BACKEND_URL}/auth/login`, {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

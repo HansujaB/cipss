@@ -1,20 +1,40 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { campaigns, domainColors, domainLabels } from '../data/dummyData';
+import { domainColors, domainLabels } from '../data/dummyData';
+import API_BASE_URL from '../config/api';
 import { getScoreColor, getScoreLabel } from '../utils/impactScore';
 import styles from './CampaignDetail.module.css';
 
 export default function CampaignDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const campaign = campaigns.find(c => c.id === id);
+  const [campaign, setCampaign] = useState(null);
   const [joined, setJoined] = useState(false);
 
-  if (!campaign) return <div className={styles.notFound}>Campaign not found. <Link to="/campaigns">Go back</Link></div>;
+  React.useEffect(() => {
+    const loadCampaign = async () => {
+      const res = await fetch(`${API_BASE_URL}/campaigns/${id}`);
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to load campaign');
+      }
+      setCampaign(data);
+    };
+
+    loadCampaign().catch((error) => {
+      console.error(error);
+      setCampaign(undefined);
+    });
+  }, [id]);
+
+  if (campaign === null) return <div className={styles.notFound}>Loading campaign...</div>;
+  if (campaign === undefined) return <div className={styles.notFound}>Campaign not found. <Link to="/campaigns">Go back</Link></div>;
 
   const scoreColor = getScoreColor(campaign.impactScore);
   const domainColor = domainColors[campaign.domain] || '#888';
-  const pct = Math.min(Math.round((campaign.fundingRaised / campaign.fundingGoal) * 100), 100);
+  const pct = campaign.fundingGoal > 0
+    ? Math.min(Math.round((campaign.fundingRaised / campaign.fundingGoal) * 100), 100)
+    : 0;
 
   return (
     <div className={styles.container}>
@@ -25,7 +45,7 @@ export default function CampaignDetail() {
       </div>
 
       <h1 className={styles.title}>{campaign.title}</h1>
-      <p className={styles.location}>📍 {campaign.location}</p>
+      <p className={styles.location}>📍 {campaign.location || campaign.area || 'TBD'}</p>
 
       <h2 className={styles.sectionTitle}>About this Campaign</h2>
       <p className={styles.description}>{campaign.description}</p>
@@ -56,7 +76,7 @@ export default function CampaignDetail() {
         <p className={styles.fundingPct}>{pct}% funded</p>
       </div>
 
-      <p className={styles.volunteers}>👥 {campaign.volunteers} volunteers enrolled</p>
+      <p className={styles.volunteers}>👥 {campaign.volunteers || 0} volunteers enrolled</p>
 
       {/* Join/Leave */}
       {joined ? (

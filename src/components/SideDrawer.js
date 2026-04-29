@@ -112,7 +112,7 @@ const SideDrawer = ({ isOpen, onClose, onNavigate, navigation, menuItems = null,
       duration: 300,
       useNativeDriver: true,
     }).start();
-  }, [isOpen]);
+  }, [isOpen, translateX]);
 
   const handleNavigate = (screenName) => {
     onNavigate(screenName);

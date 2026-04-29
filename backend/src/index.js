@@ -19,6 +19,9 @@ const ngoRoutes = require('./api/ngo');
 const campaignRoutes = require('./api/campaigns');
 const scoreRoutes = require('./api/scores');
 const insightRoutes = require('./api/insights');
+const paymentRoutes = require('./api/payments');
+const userRoutes = require('./api/users');
+const influencerRoutes = require('./api/influencers');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -63,6 +66,9 @@ app.use('/api/v1/ngo', ngoRoutes);
 app.use('/api/v1/campaigns', campaignRoutes);
 app.use('/api/v1/score', scoreRoutes);
 app.use('/api/v1/insights', insightRoutes);
+app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/influencers', influencerRoutes);
 
 // ─────────────────────────────────────────────────────────
 // 404 Handler
@@ -78,6 +84,9 @@ app.use((_req, res) => {
       campaigns: '/api/v1/campaigns | /api/v1/campaigns/recommended | /api/v1/campaigns/:id/complete',
       scores: '/api/v1/score/need | /api/v1/score/trust | /api/v1/score/impact',
       insights: '/api/v1/insights/hotspots | /api/v1/insights/trends | /api/v1/insights/need-score',
+      payments: '/api/v1/payments/create-order | /api/v1/payments/verify | /api/v1/payments/campaign/:id',
+      users: '/api/v1/users/me',
+      influencers: '/api/v1/influencers/profile | /api/v1/influencers/recommendations | /api/v1/influencers/score/:userId',
     },
   });
 });

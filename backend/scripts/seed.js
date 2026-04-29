@@ -78,9 +78,18 @@ async function seed() {
   // ── 1. Clear existing data (order matters for FK constraints)
   console.log('  🗑️  Clearing existing data…');
   await prisma.lLMInsight.deleteMany();
+  await prisma.certificate.deleteMany();
+  await prisma.rewardEvent.deleteMany();
+  await prisma.campaignProof.deleteMany();
+  await prisma.fundingTransaction.deleteMany();
+  await prisma.campaignParticipation.deleteMany();
   await prisma.campaign.deleteMany();
   await prisma.nGOMetric.deleteMany();
+  await prisma.nGOProfile.deleteMany();
   await prisma.nGO.deleteMany();
+  await prisma.companyProfile.deleteMany();
+  await prisma.influencerProfile.deleteMany();
+  await prisma.volunteerProfile.deleteMany();
   await prisma.user.deleteMany();
 
   // ── 2. Create Users ──────────────────────────────────
@@ -94,6 +103,7 @@ async function seed() {
         email: 'admin@cipss.dev',
         password: passwordHash,
         role: 'ngo_admin',
+        ngoProfile: { create: {} },
       },
     }),
     prisma.user.create({
@@ -102,6 +112,14 @@ async function seed() {
         email: 'priya@cipss.dev',
         password: passwordHash,
         role: 'volunteer',
+        volunteerProfile: {
+          create: {
+            location: 'Delhi',
+            interests: ['waste_management', 'community'],
+            credits: 40,
+            certificates: 2,
+          },
+        },
       },
     }),
     prisma.user.create({
@@ -110,6 +128,17 @@ async function seed() {
         email: 'raj@cipss.dev',
         password: passwordHash,
         role: 'influencer',
+        influencerProfile: {
+          create: {
+            socialHandle: '@rajforimpact',
+            platform: 'instagram',
+            followers: 125000,
+            engagementRate: 0.062,
+            trustScore: 82,
+            impactScore: 78,
+            verified: true,
+          },
+        },
       },
     }),
     prisma.user.create({
@@ -118,6 +147,15 @@ async function seed() {
         email: 'anita@cipss.dev',
         password: passwordHash,
         role: 'company',
+        companyProfile: {
+          create: {
+            companyName: 'Anita CSR Ventures',
+            industry: 'Technology',
+            csrBudget: 2500000,
+            focusAreas: ['waste_management', 'education'],
+            verified: true,
+          },
+        },
       },
     }),
   ]);
@@ -132,11 +170,24 @@ async function seed() {
         name: ngoData.name,
         domain: ngoData.domain,
         verified: Math.random() > 0.3, // 70% verified
+        location: pickRandom(AREAS).name,
+        registrationId: `NGO-${randomInt(1000, 9999)}`,
+        website: `https://${ngoData.name.toLowerCase().replace(/\s+/g, '')}.org`,
       },
     });
     ngos.push(ngo);
   }
   console.log(`     ✅ ${ngos.length} NGOs created`);
+
+  await prisma.nGOProfile.update({
+    where: { userId: users[0].id },
+    data: {
+      ngoId: ngos[0].id,
+      registrationId: ngos[0].registrationId,
+      website: ngos[0].website,
+      location: ngos[0].location,
+    },
+  });
 
   // ── 4. Create NGO Metrics ────────────────────────────
   console.log('  📊 Creating NGO metrics…');
@@ -188,6 +239,7 @@ async function seed() {
       data: {
         ngoId: ngo.id,
         title: pickRandom(CAMPAIGN_TITLES),
+        description: `Community-led ${ngo.domain.replace('_', ' ')} campaign in ${area.name}.`,
         domain: ngo.domain,
         lat: area.lat + randomBetween(-0.01, 0.01),
         lng: area.lng + randomBetween(-0.01, 0.01),
@@ -196,6 +248,7 @@ async function seed() {
         needScore: randomBetween(20, 95),
         trustScore: randomBetween(30, 90),
         impactScore: status === 'completed' ? randomBetween(40, 100) : null,
+        fundingGoal: randomBetween(50000, 500000),
         plannedVolunteers,
         actualVolunteers:
           status === 'completed' ? randomInt(5, plannedVolunteers + 20) : null,
@@ -211,6 +264,65 @@ async function seed() {
     campaigns.push(campaign);
   }
   console.log(`     ✅ ${campaigns.length} campaigns created`);
+
+  console.log('  🙋 Creating participations, funding, and proofs…');
+  let participationCount = 0;
+  let fundingCount = 0;
+  let proofCount = 0;
+
+  for (const campaign of campaigns.slice(0, 6)) {
+    const fundedAmount = randomBetween(5000, 50000);
+    const platformFee = parseFloat((fundedAmount * 0.05).toFixed(2));
+    const netAmount = parseFloat((fundedAmount - platformFee).toFixed(2));
+
+    const joined = await prisma.campaignParticipation.create({
+      data: {
+        campaignId: campaign.id,
+        userId: users[1].id,
+        status: campaign.status === 'completed' ? 'completed' : 'joined',
+        checkedInAt: campaign.status === 'completed' ? randomDate(10) : null,
+      },
+    });
+    participationCount++;
+
+    await prisma.fundingTransaction.create({
+      data: {
+        campaignId: campaign.id,
+        userId: users[3].id,
+        amount: fundedAmount,
+        platformFee,
+        netAmount,
+        donorName: users[3].name,
+        donorEmail: users[3].email,
+        receipt: `seed-receipt-${campaign.id}`,
+        status: 'succeeded',
+        paymentProvider: 'mock',
+        providerOrderId: `seed-order-${campaign.id}`,
+        providerPaymentId: `seed-payment-${campaign.id}`,
+      },
+    });
+    fundingCount++;
+
+    if (campaign.status === 'completed') {
+      await prisma.campaignProof.create({
+        data: {
+          campaignId: campaign.id,
+          submittedByUserId: users[1].id,
+          mediaUrl: `https://example.com/proofs/${campaign.id}.jpg`,
+          mediaType: 'image',
+          caption: 'Before/after campaign proof',
+          geoLat: campaign.lat,
+          geoLng: campaign.lng,
+          aiValidated: true,
+          verified: true,
+        },
+      });
+      proofCount++;
+    }
+  }
+  console.log(`     ✅ ${participationCount} participations created`);
+  console.log(`     ✅ ${fundingCount} funding transactions created`);
+  console.log(`     ✅ ${proofCount} proofs created`);
 
   // ── Summary ──────────────────────────────────────────
   console.log('\n✨ Seed complete!\n');

@@ -95,8 +95,8 @@ export default function App() {
           <div className={styles.userInfo}>
             <div className={styles.userAvatar}>👤</div>
             <div>
-              <div className={styles.userName}>Demo User</div>
-              <div className={styles.userPoints}>⚡ 2,850 pts</div>
+              <div className={styles.userName}>{user?.name || 'Guest User'}</div>
+              <div className={styles.userPoints}>{user ? user.role : 'Sign in to participate'}</div>
             </div>
           </div>
         </div>

@@ -11,14 +11,14 @@ let prisma;
 if (process.env.NODE_ENV === 'production') {
   prisma = new PrismaClient();
 } else {
-  // In dev, attach to globalThis so nodemon restarts don't
+  // In dev, attach to the Node global so nodemon restarts don't
   // create a new connection pool every time.
-  if (!globalThis.__prisma) {
-    globalThis.__prisma = new PrismaClient({
+  if (!global.__prisma) {
+    global.__prisma = new PrismaClient({
       log: ['warn', 'error'],
     });
   }
-  prisma = globalThis.__prisma;
+  prisma = global.__prisma;
 }
 
 module.exports = prisma;

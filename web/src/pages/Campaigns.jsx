@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { campaigns as dummyData, domainColors, domainLabels } from '../data/dummyData';
+import API_BASE_URL from '../config/api';
+import { domainColors, domainLabels } from '../data/dummyData';
 import { getScoreColor, getScoreLabel } from '../utils/impactScore';
 import styles from './Campaigns.module.css';
 
-const DOMAINS = ['All', 'waste', 'environment', 'education', 'health'];
+const DOMAINS = ['All', 'waste_management', 'environment', 'education'];
 
 export default function Campaigns() {
   const [campaigns, setCampaigns] = useState([]);
@@ -13,8 +14,21 @@ export default function Campaigns() {
   const [activeFilter, setActiveFilter] = useState('All');
 
   useEffect(() => {
-    setCampaigns(dummyData);
-    setFiltered(dummyData);
+    const loadCampaigns = async () => {
+      const res = await fetch(`${API_BASE_URL}/campaigns`);
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to load campaigns');
+      }
+      setCampaigns(data.campaigns || []);
+      setFiltered(data.campaigns || []);
+    };
+
+    loadCampaigns().catch((error) => {
+      console.error(error);
+      setCampaigns([]);
+      setFiltered([]);
+    });
   }, []);
 
   useEffect(() => {
@@ -72,7 +86,7 @@ function CampaignCard({ campaign }) {
         {domainLabels[campaign.domain] || campaign.domain}
       </div>
       <h3 className={styles.cardTitle}>{campaign.title}</h3>
-      <p className={styles.cardLocation}>📍 {campaign.location}</p>
+      <p className={styles.cardLocation}>📍 {campaign.location || campaign.area || 'TBD'}</p>
       <p className={styles.cardDesc}>{campaign.description}</p>
 
       <div className={styles.scoreBadge} style={{ background: scoreColor + '22', borderColor: scoreColor, color: scoreColor }}>
@@ -87,7 +101,7 @@ function CampaignCard({ campaign }) {
         <span>Goal: ₹{campaign.fundingGoal.toLocaleString()}</span>
       </div>
 
-      <p className={styles.volunteers}>👥 {campaign.volunteers} volunteers</p>
+      <p className={styles.volunteers}>👥 {campaign.volunteers || 0} volunteers</p>
 
       <div className={styles.actions}>
         <Link to={`/campaign/${campaign.id}`} className={styles.detailBtn}>View Details</Link>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { campaigns } from '../data/dummyData';
+import API_BASE_URL from '../config/api';
 import { getScoreColor } from '../utils/impactScore';
 import styles from './Funding.module.css';
 
@@ -10,7 +10,7 @@ const RAZORPAY_KEY = 'rzp_test_SKouY1M9KggwpT';
 export default function Funding() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const campaign = campaigns.find(c => c.id === id);
+  const [campaign, setCampaign] = useState(null);
   const [amount, setAmount] = useState('');
   const [donorName, setDonorName] = useState('');
   const [donorEmail, setDonorEmail] = useState('');
@@ -19,7 +19,22 @@ export default function Funding() {
   const [paymentMethod, setPaymentMethod] = useState('razorpay');
   const [loading, setLoading] = useState(false);
 
-  if (!campaign) return <div className={styles.notFound}>Campaign not found. <Link to="/campaigns">Go back</Link></div>;
+  React.useEffect(() => {
+    const loadCampaign = async () => {
+      const res = await fetch(`${API_BASE_URL}/campaigns/${id}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to load campaign');
+      setCampaign(data);
+    };
+
+    loadCampaign().catch((error) => {
+      console.error(error);
+      setCampaign(undefined);
+    });
+  }, [id]);
+
+  if (campaign === null) return <div className={styles.notFound}>Loading campaign...</div>;
+  if (campaign === undefined) return <div className={styles.notFound}>Campaign not found. <Link to="/campaigns">Go back</Link></div>;
 
   const scoreColor = getScoreColor(campaign.impactScore);
 
@@ -80,17 +95,50 @@ export default function Funding() {
   };
 
   const handleDemo = (parsed) => {
-    const transaction = {
-      id: `DEMO_${Date.now()}`,
-      campaignId: campaign.id,
-      amount: parsed || parseFloat(amount),
-      donorName: donorName || 'Anonymous',
-      timestamp: new Date().toISOString(),
-      method: 'Demo',
-    };
-    setTxn(transaction);
-    setSubmitted(true);
-    setLoading(false);
+    const token = localStorage.getItem('cipss_token');
+    fetch(`${API_BASE_URL}/payments/create-order`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        campaign_id: campaign.id,
+        amount: parsed || parseFloat(amount),
+        donor_name: donorName || 'Anonymous',
+        donor_email: donorEmail || undefined,
+      }),
+    })
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to create transaction');
+        return fetch(`${API_BASE_URL}/payments/mock-verify/${data.transaction.id}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+      })
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to verify transaction');
+        setTxn({
+          id: data.transaction.id,
+          campaignId: campaign.id,
+          amount: parsed || parseFloat(amount),
+          donorName: donorName || 'Anonymous',
+          timestamp: new Date().toISOString(),
+          method: 'Demo',
+        });
+        setSubmitted(true);
+      })
+      .catch((error) => {
+        alert(error.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const handleFund = () => {

@@ -181,7 +181,7 @@ export default function NotificationScreen() {
         <Text style={styles.rankArrow}>→</Text>
         <Text style={styles.newRank}>#{item.newRank}</Text>
         <Text style={[
-          styles.rankChangeText,
+          styles.rankHistoryChangeText,
           item.change < 0 ? styles.rankImprovement : styles.rankDecline
         ]}>
           ({item.change > 0 ? '+' : ''}{item.change})
@@ -730,7 +730,7 @@ const styles = StyleSheet.create({
     color: '#1A1A2E',
   },
 
-  rankChangeText: {
+  rankHistoryChangeText: {
     fontSize: 12,
     fontWeight: '600',
   },

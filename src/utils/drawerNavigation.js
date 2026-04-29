@@ -57,28 +57,3 @@ export const handleDrawerNavigation = (screenName, navigation, setDrawerOpen) =>
     navigation.navigate(targetScreen);
   }
 };
-
-// Create drawer handlers for a screen
-export const createDrawerHandlers = (navigation) => {
-  const [drawerOpen, setDrawerOpen] = React.useState(false);
-
-  const handleMenuPress = () => {
-    setDrawerOpen(true);
-  };
-
-  const handleCloseDrawer = () => {
-    setDrawerOpen(false);
-  };
-
-  const handleDrawerNavigate = (screenName) => {
-    handleDrawerNavigation(screenName, navigation, setDrawerOpen);
-  };
-
-  return {
-    drawerOpen,
-    setDrawerOpen,
-    handleMenuPress,
-    handleCloseDrawer,
-    handleDrawerNavigate,
-  };
-};

@@ -7,16 +7,15 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import StatCard from '../components/StatCard';
 import CampaignCard from '../components/CampaignCard';
 import NavigationHeader from '../components/NavigationHeader';
 import BottomTabBar from '../components/BottomTabBar';
 import SideDrawer from '../components/SideDrawer';
-import { getUserPoints } from '../services/campaignService';
 import {
-  getCampaigns,
-  getTopCampaigns,
+  getDashboardSummary,
   getJoinedCampaigns,
   joinCampaign,
 } from '../services/campaignService';
@@ -32,6 +31,9 @@ export default function DashboardScreen({ navigation }) {
   const [topCampaigns, setTopCampaigns] = useState([]);
   const [myCampaigns, setMyCampaigns] = useState([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [googleMapsEnabled, setGoogleMapsEnabled] = useState(false);
+  const [hotspots, setHotspots] = useState([]);
 
   const handleMenuPress = () => {
     setDrawerOpen(true);
@@ -97,31 +99,34 @@ export default function DashboardScreen({ navigation }) {
     loadData();
   }, []);
 
-  const loadData = () => {
-    const all = getCampaigns();
-    const top = getTopCampaigns(3);
-    const joined = getJoinedCampaigns();
-    setPoints(getUserPoints());
-    const totalFunding = all.reduce((s, c) => s + c.fundingRaised, 0);
-    const totalVolunteers = all.reduce((s, c) => s + c.volunteers, 0);
-    const avgImpact = (
-      all.reduce((s, c) => s + parseFloat(c.impactScore), 0) / all.length
-    ).toFixed(1);
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [summary, joined] = await Promise.all([
+        getDashboardSummary(),
+        getJoinedCampaigns(),
+      ]);
 
-    setStats({
-      totalCampaigns: all.length,
-      totalFunding,
-      totalVolunteers,
-      avgImpact,
-    });
-
-    setTopCampaigns(top);
-    setMyCampaigns(joined);
+      setStats(summary.stats);
+      setTopCampaigns(summary.topCampaigns || []);
+      setMyCampaigns(joined);
+      setPoints(joined.length * 10);
+      setGoogleMapsEnabled(!!summary.googleServices?.mapsEnabled);
+      setHotspots(summary.hotspots || []);
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Failed to load dashboard');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleJoin = (id) => {
-    joinCampaign(id);
-    loadData(); // 🔥 refresh
+  const handleJoin = async (id) => {
+    try {
+      await joinCampaign(id);
+      await loadData();
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Failed to join campaign');
+    }
   };
 
   return (
@@ -141,28 +146,66 @@ export default function DashboardScreen({ navigation }) {
           <Text style={styles.points}>
             Your Points: {points}
           </Text>
+          {googleMapsEnabled && (
+            <Text style={styles.googleBadge}>Google Maps enrichment enabled</Text>
+          )}
         </View>
 
-        {/* Stats */}
-        <View style={styles.statsRow}>
-          <StatCard icon="📋" label="Campaigns" value={stats.totalCampaigns} color="#3B82F6" />
-          <StatCard icon="👥" label="Volunteers" value={stats.totalVolunteers} color="#8B5CF6" />
-        </View>
-        <View style={styles.statsRow}>
-          <StatCard
-            icon="💰"
-            label="Total Funded"
-            value={`₹${(stats.totalFunding / 1000).toFixed(0)}K`}
-            color="#22C55E"
-          />
-          <StatCard icon="⚡" label="Avg Impact" value={stats.avgImpact} color="#F59E0B" />
-        </View>
-
-        {/* 🔥 MY CAMPAIGNS */}
-        {myCampaigns.length > 0 && (
+        {loading ? (
+          <View style={styles.loaderWrap}>
+            <ActivityIndicator size="large" color="#1D0A69" />
+          </View>
+        ) : (
           <>
-            <Text style={styles.sectionTitle}>🙋 My Campaigns</Text>
-            {myCampaigns.map((c) => (
+            <View style={styles.statsRow}>
+              <StatCard icon="📋" label="Campaigns" value={stats.totalCampaigns} color="#3B82F6" />
+              <StatCard icon="👥" label="Volunteers" value={stats.totalVolunteers} color="#8B5CF6" />
+            </View>
+            <View style={styles.statsRow}>
+              <StatCard
+                icon="💰"
+                label="Total Funded"
+                value={`₹${(stats.totalFunding / 1000).toFixed(0)}K`}
+                color="#22C55E"
+              />
+              <StatCard icon="⚡" label="Avg Impact" value={stats.avgImpact} color="#F59E0B" />
+            </View>
+
+            {hotspots.length > 0 && (
+              <View style={styles.hotspotCard}>
+                <Text style={styles.hotspotTitle}>📍 Priority Hotspots</Text>
+                {hotspots.slice(0, 3).map((spot, index) => (
+                  <Text key={`${spot.area || 'spot'}-${index}`} style={styles.hotspotItem}>
+                    {spot.area || `Lat ${spot.lat}, Lng ${spot.lng}`} • Need {spot.needScore}
+                  </Text>
+                ))}
+              </View>
+            )}
+
+            {myCampaigns.length > 0 && (
+              <>
+                <Text style={styles.sectionTitle}>🙋 My Campaigns</Text>
+                {myCampaigns.map((c) => (
+                  <CampaignCard
+                    key={c.id}
+                    campaign={c}
+                    onPress={(camp) =>
+                      navigation.navigate('CampaignDetail', { campaign: camp })
+                    }
+                    onJoin={handleJoin}
+                  />
+                ))}
+              </>
+            )}
+
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>🏆 Top Impact Campaigns</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Campaigns')}>
+                <Text style={styles.seeAll}>See all →</Text>
+              </TouchableOpacity>
+            </View>
+
+            {topCampaigns.map((c) => (
               <CampaignCard
                 key={c.id}
                 campaign={c}
@@ -172,52 +215,31 @@ export default function DashboardScreen({ navigation }) {
                 onJoin={handleJoin}
               />
             ))}
+
+            <TouchableOpacity
+              style={styles.csrCard}
+              onPress={() => navigation.navigate('CSRMarketplace')}
+            >
+              <Text style={styles.csrCardTitle}>💼 CSR Marketplace</Text>
+              <Text style={styles.csrCardDesc}>
+                Discover verified campaigns for your Corporate Social Responsibility initiatives
+              </Text>
+              <View style={styles.csrCardStats}>
+                <Text style={styles.csrStat}>✓ Verified NGOs</Text>
+                <Text style={styles.csrStat}>📊 Impact Tracking</Text>
+                <Text style={styles.csrStat}>📝 Tax Benefits</Text>
+              </View>
+              <Text style={styles.csrCardCta}>Explore CSR Opportunities →</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.cta}
+              onPress={() => navigation.navigate('Campaigns')}
+            >
+              <Text style={styles.ctaText}>Browse All Campaigns →</Text>
+            </TouchableOpacity>
           </>
         )}
-
-        {/* Top Campaigns */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>🏆 Top Impact Campaigns</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('CampaignList')}>
-            <Text style={styles.seeAll}>See all →</Text>
-          </TouchableOpacity>
-        </View>
-
-        {topCampaigns.map((c) => (
-          <CampaignCard
-            key={c.id}
-            campaign={c}
-            onPress={(camp) =>
-              navigation.navigate('CampaignDetail', { campaign: camp })
-            }
-            onJoin={handleJoin}
-          />
-        ))}
-
-        {/* CSR Marketplace CTA */}
-        <TouchableOpacity
-          style={styles.csrCard}
-          onPress={() => navigation.navigate('CSRMarketplace')}
-        >
-          <Text style={styles.csrCardTitle}>💼 CSR Marketplace</Text>
-          <Text style={styles.csrCardDesc}>
-            Discover verified campaigns for your Corporate Social Responsibility initiatives
-          </Text>
-          <View style={styles.csrCardStats}>
-            <Text style={styles.csrStat}>✓ Verified NGOs</Text>
-            <Text style={styles.csrStat}>📊 Impact Tracking</Text>
-            <Text style={styles.csrStat}>📝 Tax Benefits</Text>
-          </View>
-          <Text style={styles.csrCardCta}>Explore CSR Opportunities →</Text>
-        </TouchableOpacity>
-
-        {/* CTA */}
-        <TouchableOpacity
-          style={styles.cta}
-          onPress={() => navigation.navigate('CampaignList')}
-        >
-          <Text style={styles.ctaText}>Browse All Campaigns →</Text>
-        </TouchableOpacity>
       </ScrollView>
       
       <BottomTabBar
@@ -254,8 +276,36 @@ const styles = StyleSheet.create({
     color: '#1D0A69',
     marginTop: 6,
   },
+  googleBadge: {
+    marginTop: 8,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#166534',
+  },
 
   statsRow: { flexDirection: 'row', marginBottom: 10 },
+  loaderWrap: {
+    minHeight: 240,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hotspotCard: {
+    backgroundColor: '#ECFDF5',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 18,
+  },
+  hotspotTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#064E3B',
+    marginBottom: 8,
+  },
+  hotspotItem: {
+    fontSize: 13,
+    color: '#065F46',
+    marginBottom: 4,
+  },
 
   sectionHeader: {
     flexDirection: 'row',

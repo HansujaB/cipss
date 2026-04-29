@@ -7,6 +7,7 @@ import {
   StyleSheet,
   SafeAreaView,
   Alert,
+  Linking,
 } from 'react-native';
 import { getScoreColor, getScoreLabel } from '../utils/impactScore';
 import { domainColors, domainLabels } from '../constants/dummyData';
@@ -89,13 +90,21 @@ export default function CampaignDetailScreen({ route, navigation }) {
   ];
 
   const handleJoin = () => {
-    joinCampaign(campaign.id);
-    setJoined(true);
+    joinCampaign(campaign.id)
+      .then(() => {
+        setJoined(true);
+        Alert.alert('🎉 Joined!', `You have successfully joined "${campaign.title}"!`);
+      })
+      .catch((error) => Alert.alert('Error', error.message || 'Failed to join campaign'));
   };
 
   const handleLeave = () => {
-    leaveCampaign(campaign.id);
-    setJoined(false);
+    leaveCampaign(campaign.id)
+      .then(() => {
+        setJoined(false);
+        Alert.alert('Left Campaign', `You have left "${campaign.title}".`);
+      })
+      .catch((error) => Alert.alert('Error', error.message || 'Failed to leave campaign'));
   };
 
   const ScoreRow = ({ label, value }) => (
@@ -120,7 +129,7 @@ export default function CampaignDetailScreen({ route, navigation }) {
       <NavigationHeader
         title="Campaign Details"
         showBackButton={true}
-        onBackPress={handleMenuPress}
+        onBackPress={() => navigation.goBack()}
         onNotificationPress={handleNotificationPress}
         onProfilePress={handleProfilePress}
       />
@@ -136,6 +145,11 @@ export default function CampaignDetailScreen({ route, navigation }) {
 
         <Text style={styles.title}>{campaign.title}</Text>
         <Text style={styles.location}>📍 {campaign.location}</Text>
+        {campaign.mapUrl ? (
+          <TouchableOpacity style={styles.mapBtn} onPress={() => Linking.openURL(campaign.mapUrl)}>
+            <Text style={styles.mapBtnText}>Open in Google Maps</Text>
+          </TouchableOpacity>
+        ) : null}
 
         {/* Description */}
         <Text style={styles.sectionTitle}>About this Campaign</Text>
@@ -184,7 +198,15 @@ export default function CampaignDetailScreen({ route, navigation }) {
           👥 {campaign.volunteers} volunteers enrolled
         </Text>
 
-        {/* 🔥 JOIN / LEAVE BUTTON (ADDED, NOTHING REMOVED) */}
+        {/* Joined Badge */}
+        {joined && (
+          <View style={styles.joinedBadge}>
+            <Text style={styles.joinedBadgeText}>✅ You have joined this campaign!</Text>
+            <Text style={styles.joinedBadgeSub}>Thank you for making a difference 💚</Text>
+          </View>
+        )}
+
+        {/* 🔥 JOIN / LEAVE BUTTON */}
         {joined ? (
           <TouchableOpacity style={styles.leaveBtn} onPress={handleLeave}>
             <Text style={styles.leaveText}>Leave Campaign</Text>
@@ -254,6 +276,19 @@ const styles = StyleSheet.create({
 
   title: { fontSize: 24, fontWeight: '800', color: '#1A1A2E', marginBottom: 6 },
   location: { fontSize: 14, color: '#6B7280', marginBottom: 20 },
+  mapBtn: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#E0F2FE',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 18,
+  },
+  mapBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#075985',
+  },
 
   sectionTitle: {
     fontSize: 16,
@@ -363,4 +398,24 @@ const styles = StyleSheet.create({
   },
 
   leaveText: { color: '#DC2626', fontWeight: '700' },
+
+  joinedBadge: {
+    backgroundColor: '#DCFCE7',
+    borderRadius: 12,
+    padding: 14,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: '#22C55E',
+    alignItems: 'center',
+  },
+  joinedBadgeText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#166534',
+  },
+  joinedBadgeSub: {
+    fontSize: 12,
+    color: '#22C55E',
+    marginTop: 4,
+  },
 });

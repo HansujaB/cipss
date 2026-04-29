@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useAuth } from '../context/AuthContext';
 
 const ROLES = [
   {
@@ -41,6 +42,7 @@ const ROLES = [
 ];
 
 export default function RegisterScreen({ navigation }) {
+  const { register } = useAuth();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
@@ -87,26 +89,30 @@ export default function RegisterScreen({ navigation }) {
     setLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const result = await register({
+        name,
+        email,
+        password,
+        role: selectedRole,
+      });
 
-      Alert.alert(
-        'Registration Successful! 🎉',
-        `Welcome ${name}! Your account has been created as a ${ROLES.find(r => r.key === selectedRole)?.label}.`,
-        [
-          {
-            text: 'Get Started',
-            onPress: () => {
-              // Use global function to switch to main app
-              if (global.navigateToMainApp) {
-                global.navigateToMainApp();
-              }
-            },
+      if (!result.success) {
+        throw new Error(result.error || 'Registration failed');
+      }
+
+      Alert.alert('Registration Successful! 🎉', `Welcome ${name}!`, [
+        {
+          text: 'Get Started',
+          onPress: () => {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Dashboard' }],
+            });
           },
-        ]
-      );
+        },
+      ]);
     } catch (error) {
-      Alert.alert('Error', 'Registration failed. Please try again.');
+      Alert.alert('Error', error.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }

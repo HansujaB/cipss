@@ -2,7 +2,7 @@
 // Handles real payment integration with backend API
 
 import { API_BASE_URL, getAuthToken } from './api';
-// import RazorpayCheckout from 'react-native-razorpay'; // Commented out - not installed
+import RazorpayCheckout from 'react-native-razorpay';
 
 const PLATFORM_FEE_RATE = 0.05; // 5%
 
@@ -217,40 +217,24 @@ export const calculateFees = (amount) => {
  */
 export const openRazorpayCheckout = (order, key, options = {}) => {
   return new Promise((resolve, reject) => {
-    console.log('Opening Razorpay checkout for order:', order.id);
-    
-    // TODO: Install react-native-razorpay package for production
-    // For now, return mock success
-    console.warn('Razorpay not installed - returning mock payment success');
-    
-    setTimeout(() => {
-      resolve({
-        orderId: order.id,
-        paymentId: 'mock_payment_' + Date.now(),
-        signature: 'mock_signature',
-      });
-    }, 1000);
-
-    /* Uncomment when react-native-razorpay is installed:
     const optionsData = {
       description: options.description || 'Payment for campaign',
-      image: 'https://example.com/your_logo.png',
+      image: 'https://cipss-platform-b289f.web.app/favicon.ico',
       currency: 'INR',
-      key: key,
+      key: key || 'rzp_test_SKouY1M9KggwpT',
       amount: order.amount,
       name: 'CIPSS',
       order_id: order.id,
       prefill: {
-        email: options.email,
+        email: options.email || '',
         contact: '',
-        name: options.name,
+        name: options.name || 'Anonymous',
       },
       theme: { color: '#1D0A69' },
     };
 
     RazorpayCheckout.open(optionsData)
       .then((data) => {
-        // Success
         resolve({
           orderId: data.razorpay_order_id,
           paymentId: data.razorpay_payment_id,
@@ -258,10 +242,8 @@ export const openRazorpayCheckout = (order, key, options = {}) => {
         });
       })
       .catch((error) => {
-        // Handle failure
         console.error('Razorpay error:', error);
         reject(new Error(error.description || error.code || 'Payment failed'));
       });
-    */
   });
 };

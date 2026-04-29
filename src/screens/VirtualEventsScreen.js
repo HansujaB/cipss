@@ -220,7 +220,16 @@ export default function VirtualEventsScreen() {
             registration?.status === 'waitlist' ? styles.waitlistStatus :
             styles.pendingStatus
           ]}>
-            <Text style={styles.registrationStatusText}>
+            <Text
+              style={[
+                styles.registrationStatusText,
+                registration?.status === 'confirmed'
+                  ? styles.confirmedStatusText
+                  : registration?.status === 'waitlist'
+                    ? styles.waitlistStatusText
+                    : styles.pendingStatusText,
+              ]}
+            >
               {registration?.status || 'Not Registered'}
             </Text>
           </View>
@@ -933,15 +942,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  confirmedStatus: {
+  confirmedStatusText: {
     color: '#065F46',
   },
 
-  waitlistStatus: {
+  waitlistStatusText: {
     color: '#92400E',
   },
 
-  pendingStatus: {
+  pendingStatusText: {
     color: '#991B1B',
   },
 

@@ -246,7 +246,7 @@ export default function OfflineScreen() {
 
   const renderCacheItem = ({ item }) => (
     <View style={styles.cacheItem}>
-      <View style={styles.cacheHeader}>
+      <View style={styles.cacheItemHeader}>
         <Text style={styles.cacheKey}>{item.key}</Text>
         <Text style={styles.cacheSize}>{(item.size / 1024).toFixed(1)} KB</Text>
       </View>
@@ -267,7 +267,7 @@ export default function OfflineScreen() {
 
   const renderSyncItem = ({ item }) => (
     <View style={styles.syncItem}>
-      <View style={styles.syncHeader}>
+      <View style={styles.syncItemHeader}>
         <Text style={styles.syncAction}>{item.action}</Text>
         <View style={[
           styles.priorityBadge,
@@ -696,7 +696,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
 
-  cacheHeader: {
+  cacheItemHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -772,7 +772,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
 
-  syncHeader: {
+  syncItemHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

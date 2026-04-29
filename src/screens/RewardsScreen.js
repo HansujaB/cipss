@@ -1,956 +1,247 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
-  ScrollView,
   Alert,
-  TextInput,
+  ActivityIndicator,
 } from 'react-native';
-import {
-  REWARDS_DATA,
-  getUserCoins,
-  getUserPoints,
-  getRewards,
-  getRewardById,
-  getCategories,
-  claimReward,
-  getRedemptionHistory,
-  getDailyBonus,
-  claimDailyBonus,
-  getRewardsByRarity,
-  getAffordableRewards,
-  searchRewards,
-  getRewardStats,
-  getAchievements,
-  getRarityColor,
-} from '../services/rewardsService';
+import { claimDailyBonus, getMyProfile, redeemReward } from '../services/userService';
+
+const REWARD_OPTIONS = [
+  { id: 'reward_1', title: 'Eco Warrior Badge', cost: 25 },
+  { id: 'reward_2', title: 'Volunteer Voucher', cost: 50 },
+  { id: 'reward_3', title: 'Priority Event Access', cost: 75 },
+];
 
 export default function RewardsScreen() {
-  const [activeTab, setActiveTab] = useState('rewards');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [userCoins, setUserCoins] = useState(getUserCoins());
-  const [userPoints, setUserPoints] = useState(getUserPoints());
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const tabs = [
-    { key: 'rewards', label: 'Rewards', icon: '🎁' },
-    { key: 'history', label: 'History', icon: '📜' },
-    { key: 'achievements', label: 'Achievements', icon: '🏆' },
-    { key: 'daily', label: 'Daily', icon: '🎯' },
-  ];
-
-  const categories = [
-    { key: 'all', name: 'All', icon: '🌟' },
-    ...getCategories(),
-  ];
-
-  const dailyBonusInfo = getDailyBonus();
-  const rewardStats = getRewardStats();
-  const achievements = getAchievements();
-
-  const handleClaimReward = (rewardId) => {
-    const reward = getRewardById(rewardId);
-    if (!reward) return;
-
-    Alert.alert(
-      'Claim Reward',
-      `Are you sure you want to claim "${reward.name}" for ${reward.cost} coins?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Claim',
-          onPress: () => {
-            const result = claimReward(rewardId);
-            if (result.success) {
-              setUserCoins(getUserCoins());
-              Alert.alert('Success!', result.message);
-            } else {
-              Alert.alert('Error', result.message);
-            }
-          }
-        }
-      ]
-    );
-  };
-
-  const handleClaimDailyBonus = () => {
-    const result = claimDailyBonus();
-    if (result.success) {
-      setUserCoins(getUserCoins());
-      Alert.alert('Success!', result.message);
-    } else {
-      Alert.alert('Info', result.message);
+  const loadProfile = async () => {
+    try {
+      setLoading(true);
+      const data = await getMyProfile();
+      setProfile(data);
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Failed to load rewards');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getRewardsForDisplay = () => {
-    let rewards = getRewards();
-    
-    if (selectedCategory !== 'all') {
-      rewards = rewards.filter(r => r.category === selectedCategory);
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const handleDailyBonus = async () => {
+    try {
+      await claimDailyBonus();
+      await loadProfile();
+      Alert.alert('Success', 'Daily bonus claimed');
+    } catch (error) {
+      Alert.alert('Info', error.message || 'Unable to claim daily bonus');
     }
-    
-    if (searchQuery) {
-      rewards = searchRewards(searchQuery);
-    }
-    
-    return rewards;
   };
 
-  const renderRewardCard = ({ item }) => {
-    const canAfford = userCoins >= item.cost;
-    const rarityColor = getRarityColor(item.rarity);
-    
+  const handleRedeem = async (reward) => {
+    try {
+      await redeemReward({ title: reward.title, cost: reward.cost });
+      await loadProfile();
+      Alert.alert('Success', `${reward.title} redeemed`);
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Unable to redeem reward');
+    }
+  };
+
+  if (loading) {
     return (
-      <View style={[
-        styles.rewardCard,
-        !item.available && styles.unavailableReward,
-        item.claimed && styles.claimedReward
-      ]}>
-        <View style={styles.rewardHeader}>
-          <Text style={styles.rewardIcon}>{item.icon}</Text>
-          <View style={styles.rewardInfo}>
-            <Text style={styles.rewardName}>{item.name}</Text>
-            <Text style={styles.rewardDescription}>{item.description}</Text>
-            <View style={styles.rewardMeta}>
-              <Text style={[styles.rewardCategory, { color: rarityColor }]}>
-                {item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1)}
-              </Text>
-              <Text style={styles.rewardType}>{item.type}</Text>
-            </View>
-          </View>
-          <View style={styles.rewardCost}>
-            <Text style={styles.costAmount}>{item.cost}</Text>
-            <Text style={styles.costLabel}>coins</Text>
-          </View>
-        </View>
-        
-        <View style={styles.rewardFooter}>
-          {item.claimed ? (
-            <View style={styles.claimedBadge}>
-              <Text style={styles.claimedBadgeText}>Claimed</Text>
-            </View>
-          ) : !item.available ? (
-            <View style={styles.unavailableBadge}>
-              <Text style={styles.unavailableBadgeText}>Unavailable</Text>
-            </View>
-          ) : !canAfford ? (
-            <View style={styles.insufficientBadge}>
-              <Text style={styles.insufficientBadgeText}>Insufficient Coins</Text>
-            </View>
-          ) : (
-            <TouchableOpacity
-              style={styles.claimBtn}
-              onPress={() => handleClaimReward(item.id)}
-            >
-              <Text style={styles.claimBtnText}>Claim</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+      <View style={styles.loaderWrap}>
+        <ActivityIndicator size="large" color="#1D0A69" />
       </View>
     );
-  };
+  }
 
-  const renderHistoryItem = ({ item }) => (
-    <View style={styles.historyItem}>
-      <Text style={styles.historyIcon}>
-        {getRewardById(item.rewardId)?.icon || '🎁'}
-      </Text>
-      <View style={styles.historyInfo}>
-        <Text style={styles.historyName}>{item.rewardName}</Text>
-        <Text style={styles.historyDate}>
-          {new Date(item.date).toLocaleDateString()}
-        </Text>
-      </View>
-      <View style={styles.historyDetails}>
-        <Text style={styles.historyCost}>-{item.cost} coins</Text>
-        <Text style={[
-          styles.historyStatus,
-          item.status === 'completed' && styles.statusCompleted,
-          item.status === 'active' && styles.statusActive,
-          item.status === 'pending' && styles.statusPending
-        ]}>
-          {item.status}
-        </Text>
-      </View>
-    </View>
-  );
-
-  const renderAchievementItem = ({ item }) => (
-    <View style={[
-      styles.achievementItem,
-      item.unlocked && styles.unlockedAchievement
-    ]}>
-      <Text style={styles.achievementIcon}>
-        {item.unlocked ? '✅' : '🔒'}
-      </Text>
-      <View style={styles.achievementInfo}>
-        <Text style={styles.achievementName}>{item.name}</Text>
-        <Text style={styles.achievementDescription}>{item.description}</Text>
-      </View>
-      <View style={styles.achievementReward}>
-        <Text style={styles.achievementCoins}>+{item.coins}</Text>
-        <Text style={styles.achievementCoinsLabel}>coins</Text>
-      </View>
-    </View>
-  );
-
-  const renderCategoryTab = ({ item }) => (
-    <TouchableOpacity
-      style={[
-        styles.categoryTab,
-        selectedCategory === item.key && styles.selectedCategoryTab
-      ]}
-      onPress={() => setSelectedCategory(item.key)}
-    >
-      <Text style={styles.categoryIcon}>{item.icon}</Text>
-      <Text style={[
-        styles.categoryLabel,
-        selectedCategory === item.key && styles.selectedCategoryLabel
-      ]}>
-        {item.name}
-      </Text>
-    </TouchableOpacity>
-  );
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'rewards':
-        return (
-          <View style={styles.rewardsContainer}>
-            {/* Search Bar */}
-            <View style={styles.searchContainer}>
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search rewards..."
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-            </View>
-            
-            {/* Categories */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.categoriesContainer}
-              contentContainerStyle={{ paddingHorizontal: 16 }}
-            >
-              {categories.map((category, index) => (
-                <View key={index}>
-                  {renderCategoryTab({ item: category })}
-                </View>
-              ))}
-            </ScrollView>
-            
-            {/* Rewards List */}
-            <FlatList
-              data={getRewardsForDisplay()}
-              keyExtractor={(item) => item.id}
-              renderItem={renderRewardCard}
-              contentContainerStyle={{ padding: 16 }}
-              showsVerticalScrollIndicator={false}
-              ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>No rewards found</Text>
-                </View>
-              }
-            />
-          </View>
-        );
-        
-      case 'history':
-        return (
-          <View style={styles.historyContainer}>
-            <FlatList
-              data={getRedemptionHistory()}
-              keyExtractor={(item) => item.id}
-              renderItem={renderHistoryItem}
-              contentContainerStyle={{ padding: 16 }}
-              showsVerticalScrollIndicator={false}
-              ListEmptyComponent={
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>No redemption history</Text>
-                </View>
-              }
-            />
-          </View>
-        );
-        
-      case 'achievements':
-        return (
-          <View style={styles.achievementsContainer}>
-            <FlatList
-              data={achievements}
-              keyExtractor={(item) => item.id}
-              renderItem={renderAchievementItem}
-              contentContainerStyle={{ padding: 16 }}
-              showsVerticalScrollIndicator={false}
-            />
-          </View>
-        );
-        
-      case 'daily':
-        return (
-          <ScrollView style={styles.dailyContainer} showsVerticalScrollIndicator={false}>
-            {/* Daily Bonus */}
-            <View style={styles.dailyBonusCard}>
-              <Text style={styles.dailyBonusTitle}>🎯 Daily Bonus</Text>
-              <Text style={styles.dailyBonusDescription}>
-                Claim your daily bonus to keep your streak going!
-              </Text>
-              
-              <View style={styles.streakInfo}>
-                <Text style={styles.streakCount}>
-                  🔥 {dailyBonusInfo.streak || 0} day streak
-                </Text>
-                {dailyBonusInfo.available && (
-                  <Text style={styles.nextBonus}>
-                    Next: +{dailyBonusInfo.bonusAmount} coins
-                  </Text>
-                )}
-              </View>
-              
-              <TouchableOpacity
-                style={[
-                  styles.claimBonusBtn,
-                  !dailyBonusInfo.available && styles.disabledBonusBtn
-                ]}
-                onPress={handleClaimDailyBonus}
-                disabled={!dailyBonusInfo.available}
-              >
-                <Text style={[
-                  styles.claimBonusBtnText,
-                  !dailyBonusInfo.available && styles.disabledBonusBtnText
-                ]}>
-                  {dailyBonusInfo.available ? 'Claim Bonus' : 'Already Claimed'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            
-            {/* Stats */}
-            <View style={styles.statsCard}>
-              <Text style={styles.statsTitle}>📊 Your Stats</Text>
-              <View style={styles.statsGrid}>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{userCoins}</Text>
-                  <Text style={styles.statLabel}>Coins</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{userPoints}</Text>
-                  <Text style={styles.statLabel}>Points</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{rewardStats.claimedRewards}</Text>
-                  <Text style={styles.statLabel}>Claimed</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{rewardStats.totalSpent}</Text>
-                  <Text style={styles.statLabel}>Spent</Text>
-                </View>
-              </View>
-            </View>
-            
-            {/* Affordable Rewards */}
-            <View style={styles.affordableSection}>
-              <Text style={styles.sectionTitle}>💰 Affordable Rewards</Text>
-              {getAffordableRewards().slice(0, 3).map((reward, index) => (
-                <TouchableOpacity
-                  key={reward.id}
-                  style={styles.affordableRewardCard}
-                  onPress={() => handleClaimReward(reward.id)}
-                >
-                  <Text style={styles.affordableRewardIcon}>{reward.icon}</Text>
-                  <Text style={styles.affordableRewardName}>{reward.name}</Text>
-                  <Text style={styles.affordableRewardCost}>{reward.cost} coins</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
-        );
-        
-      default:
-        return null;
-    }
-  };
+  const rewards = profile?.rewards;
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <Text style={styles.title}>🎁 Rewards</Text>
-      
-      {/* Balance Display */}
-      <View style={styles.balanceCard}>
-        <View style={styles.balanceItem}>
-          <Text style={styles.balanceAmount}>{userCoins}</Text>
-          <Text style={styles.balanceLabel}>Coins</Text>
+    <FlatList
+      data={REWARD_OPTIONS}
+      keyExtractor={(item) => item.id}
+      ListHeaderComponent={
+        <View style={styles.container}>
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryTitle}>Volunteer Rewards</Text>
+            <View style={styles.summaryStats}>
+              <View style={styles.summaryStat}>
+                <Text style={styles.summaryValue}>{rewards?.credits || 0}</Text>
+                <Text style={styles.summaryLabel}>Credits</Text>
+              </View>
+              <View style={styles.summaryStat}>
+                <Text style={styles.summaryValue}>{rewards?.totalPoints || 0}</Text>
+                <Text style={styles.summaryLabel}>Points</Text>
+              </View>
+              <View style={styles.summaryStat}>
+                <Text style={styles.summaryValue}>{rewards?.certificatesCount || 0}</Text>
+                <Text style={styles.summaryLabel}>Certificates</Text>
+              </View>
+            </View>
+            <TouchableOpacity style={styles.dailyBtn} onPress={handleDailyBonus}>
+              <Text style={styles.dailyBtnText}>Claim Daily Bonus</Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.sectionTitle}>Redeem Rewards</Text>
         </View>
-        <View style={styles.balanceItem}>
-          <Text style={styles.balanceAmount}>{userPoints}</Text>
-          <Text style={styles.balanceLabel}>Points</Text>
+      }
+      renderItem={({ item }) => {
+        const affordable = (rewards?.credits || 0) >= item.cost;
+
+        return (
+          <View style={styles.rewardCard}>
+            <View>
+              <Text style={styles.rewardTitle}>{item.title}</Text>
+              <Text style={styles.rewardCost}>{item.cost} credits</Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.redeemBtn, !affordable && styles.redeemBtnDisabled]}
+              onPress={() => handleRedeem(item)}
+              disabled={!affordable}
+            >
+              <Text style={styles.redeemBtnText}>{affordable ? 'Redeem' : 'Locked'}</Text>
+            </TouchableOpacity>
+          </View>
+        );
+      }}
+      ListFooterComponent={
+        <View style={styles.footer}>
+          <Text style={styles.sectionTitle}>Recent Reward Events</Text>
+          {(rewards?.events || []).slice(0, 6).map((event) => (
+            <View key={event.id} style={styles.eventItem}>
+              <Text style={styles.eventTitle}>{event.description || event.type}</Text>
+              <Text style={styles.eventMeta}>
+                {event.pointsDelta >= 0 ? '+' : ''}{event.pointsDelta} pts • {event.creditsDelta >= 0 ? '+' : ''}{event.creditsDelta} credits
+              </Text>
+            </View>
+          ))}
         </View>
-      </View>
-      
-      <View style={styles.tabs}>
-        {tabs.map((tab) => (
-          <TouchableOpacity
-            key={tab.key}
-            style={[
-              styles.tab,
-              activeTab === tab.key && styles.tabActive
-            ]}
-            onPress={() => setActiveTab(tab.key)}
-          >
-            <Text style={styles.tabIcon}>{tab.icon}</Text>
-            <Text style={[
-              styles.tabLabel,
-              activeTab === tab.key && styles.tabLabelActive
-            ]}>
-              {tab.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-      
-      {renderContent()}
-    </SafeAreaView>
+      }
+      contentContainerStyle={styles.listContent}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
+  listContent: {
+    paddingBottom: 32,
     backgroundColor: '#F9FAFB',
   },
-
-  title: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#1A1A2E',
+  container: {
     padding: 16,
-    paddingBottom: 8,
   },
-
-  balanceCard: {
-    backgroundColor: '#1D0A69',
-    marginHorizontal: 16,
-    marginBottom: 16,
-    padding: 20,
-    borderRadius: 14,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-
-  balanceItem: {
+  loaderWrap: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#F9FAFB',
   },
-
-  balanceAmount: {
-    fontSize: 24,
+  summaryCard: {
+    backgroundColor: '#1D0A69',
+    borderRadius: 18,
+    padding: 18,
+    marginBottom: 18,
+  },
+  summaryTitle: {
+    color: '#FFFFFF',
+    fontSize: 20,
     fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 4,
+    marginBottom: 16,
   },
-
-  balanceLabel: {
-    fontSize: 12,
-    color: '#E5E7EB',
-  },
-
-  tabs: {
+  summaryStats: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
+    justifyContent: 'space-between',
     marginBottom: 16,
-    gap: 4,
   },
-
-  tab: {
-    backgroundColor: '#FFFFFF',
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 12,
+  summaryStat: {
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
   },
-
-  tabActive: {
-    backgroundColor: '#1D0A69',
-    borderColor: '#1D0A69',
-  },
-
-  tabIcon: {
-    fontSize: 14,
-    marginBottom: 2,
-  },
-
-  tabLabel: {
-    fontSize: 9,
-    color: '#6B7280',
-  },
-
-  tabLabelActive: {
+  summaryValue: {
     color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '800',
   },
-
-  rewardsContainer: {
-    flex: 1,
-  },
-
-  searchContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-
-  searchInput: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 12,
-    fontSize: 14,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-
-  categoriesContainer: {
-    marginBottom: 16,
-  },
-
-  categoryTab: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-
-  selectedCategoryTab: {
-    backgroundColor: '#1D0A69',
-    borderColor: '#1D0A69',
-  },
-
-  categoryIcon: {
-    fontSize: 14,
-    marginRight: 6,
-  },
-
-  categoryLabel: {
+  summaryLabel: {
+    color: 'rgba(255,255,255,0.8)',
     fontSize: 12,
-    color: '#6B7280',
   },
-
-  selectedCategoryLabel: {
+  dailyBtn: {
+    backgroundColor: '#F59E0B',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  dailyBtnText: {
     color: '#FFFFFF',
+    fontWeight: '800',
   },
-
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 12,
+  },
   rewardCard: {
     backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     marginHorizontal: 16,
     marginBottom: 12,
     padding: 16,
-    borderRadius: 14,
-    elevation: 2,
-  },
-
-  unavailableReward: {
-    opacity: 0.6,
-  },
-
-  claimedReward: {
-    borderLeftWidth: 3,
-    borderLeftColor: '#22C55E',
-  },
-
-  rewardHeader: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-
-  rewardIcon: {
-    fontSize: 32,
-    marginRight: 12,
-  },
-
-  rewardInfo: {
-    flex: 1,
-  },
-
-  rewardName: {
-    fontSize: 16,
+  rewardTitle: {
+    fontSize: 15,
     fontWeight: '700',
-    color: '#1A1A2E',
-    marginBottom: 4,
+    color: '#111827',
   },
-
-  rewardDescription: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginBottom: 8,
-  },
-
-  rewardMeta: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-
-  rewardCategory: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-
-  rewardType: {
-    fontSize: 11,
-    color: '#6B7280',
-  },
-
   rewardCost: {
-    alignItems: 'flex-end',
+    marginTop: 4,
+    color: '#6B7280',
   },
-
-  costAmount: {
-    fontSize: 18,
+  redeemBtn: {
+    backgroundColor: '#16A34A',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  redeemBtnDisabled: {
+    backgroundColor: '#9CA3AF',
+  },
+  redeemBtnText: {
+    color: '#FFFFFF',
     fontWeight: '700',
-    color: '#1D0A69',
-    marginBottom: 2,
   },
-
-  costLabel: {
-    fontSize: 10,
-    color: '#6B7280',
-  },
-
-  rewardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-  },
-
-  claimedBadge: {
-    backgroundColor: '#F0FDF4',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-
-  claimedBadgeText: {
-    color: '#22C55E',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-
-  unavailableBadge: {
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-
-  unavailableBadgeText: {
-    color: '#6B7280',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-
-  insufficientBadge: {
-    backgroundColor: '#FEF2F2',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-
-  insufficientBadgeText: {
-    color: '#EF4444',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-
-  claimBtn: {
-    backgroundColor: '#1D0A69',
+  footer: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingTop: 8,
   },
-
-  claimBtnText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-
-  historyContainer: {
-    flex: 1,
-  },
-
-  historyItem: {
+  eventItem: {
     backgroundColor: '#FFFFFF',
-    marginHorizontal: 16,
-    marginBottom: 12,
-    padding: 16,
     borderRadius: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    elevation: 2,
+    padding: 14,
+    marginBottom: 10,
   },
-
-  historyIcon: {
-    fontSize: 24,
-    marginRight: 12,
-  },
-
-  historyInfo: {
-    flex: 1,
-  },
-
-  historyName: {
+  eventTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1A1A2E',
-    marginBottom: 2,
+    color: '#111827',
   },
-
-  historyDate: {
+  eventMeta: {
+    marginTop: 4,
+    color: '#6B7280',
     fontSize: 12,
-    color: '#6B7280',
-  },
-
-  historyDetails: {
-    alignItems: 'flex-end',
-  },
-
-  historyCost: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#EF4444',
-    marginBottom: 2,
-  },
-
-  historyStatus: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-
-  statusCompleted: {
-    color: '#22C55E',
-  },
-
-  statusActive: {
-    color: '#3B82F6',
-  },
-
-  statusPending: {
-    color: '#F59E0B',
-  },
-
-  achievementsContainer: {
-    flex: 1,
-  },
-
-  achievementItem: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 16,
-    marginBottom: 12,
-    padding: 16,
-    borderRadius: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    elevation: 2,
-  },
-
-  unlockedAchievement: {
-    borderLeftWidth: 3,
-    borderLeftColor: '#22C55E',
-  },
-
-  achievementIcon: {
-    fontSize: 24,
-    marginRight: 12,
-  },
-
-  achievementInfo: {
-    flex: 1,
-  },
-
-  achievementName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1A1A2E',
-    marginBottom: 2,
-  },
-
-  achievementDescription: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-
-  achievementReward: {
-    alignItems: 'flex-end',
-  },
-
-  achievementCoins: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1D0A69',
-    marginBottom: 2,
-  },
-
-  achievementCoinsLabel: {
-    fontSize: 10,
-    color: '#6B7280',
-  },
-
-  dailyContainer: {
-    flex: 1,
-    padding: 16,
-  },
-
-  dailyBonusCard: {
-    backgroundColor: '#FFFFFF',
-    padding: 20,
-    borderRadius: 14,
-    marginBottom: 16,
-    elevation: 2,
-    alignItems: 'center',
-  },
-
-  dailyBonusTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1A1A2E',
-    marginBottom: 8,
-  },
-
-  dailyBonusDescription: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-
-  streakInfo: {
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-
-  streakCount: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#F59E0B',
-    marginBottom: 4,
-  },
-
-  nextBonus: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-
-  claimBonusBtn: {
-    backgroundColor: '#1D0A69',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-
-  disabledBonusBtn: {
-    backgroundColor: '#D1D5DB',
-  },
-
-  claimBonusBtnText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-
-  disabledBonusBtnText: {
-    color: '#9CA3AF',
-  },
-
-  statsCard: {
-    backgroundColor: '#FFFFFF',
-    padding: 20,
-    borderRadius: 14,
-    marginBottom: 16,
-    elevation: 2,
-  },
-
-  statsTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1A1A2E',
-    marginBottom: 16,
-  },
-
-  statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-
-  statItem: {
-    alignItems: 'center',
-  },
-
-  statValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1D0A69',
-    marginBottom: 4,
-  },
-
-  statLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-
-  affordableSection: {
-    marginBottom: 16,
-  },
-
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1A1A2E',
-    marginBottom: 12,
-  },
-
-  affordableRewardCard: {
-    backgroundColor: '#FFFFFF',
-    padding: 12,
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-    elevation: 2,
-  },
-
-  affordableRewardIcon: {
-    fontSize: 20,
-    marginRight: 12,
-  },
-
-  affordableRewardName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1A1A2E',
-    flex: 1,
-  },
-
-  affordableRewardCost: {
-    fontSize: 12,
-    color: '#1D0A69',
-    fontWeight: '600',
-  },
-
-  emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-
-  emptyText: {
-    fontSize: 14,
-    color: '#6B7280',
   },
 });

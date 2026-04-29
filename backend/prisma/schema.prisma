@@ -14,13 +14,17 @@ datasource db {
 // ── NGO ──────────────────────────────────────────────────
 
 model NGO {
-  id        String      @id @default(uuid())
-  name      String
-  domain    String // 'waste_management' | 'education' | 'environment'
-  verified  Boolean     @default(false)
-  metrics   NGOMetric[]
-  campaigns Campaign[]
-  createdAt DateTime    @default(now())
+  id             String      @id @default(uuid())
+  name           String
+  domain         String // 'waste_management' | 'education' | 'environment'
+  verified       Boolean     @default(false)
+  registrationId String?
+  website        String?
+  location       String?
+  metrics        NGOMetric[]
+  campaigns      Campaign[]
+  profile        NGOProfile?
+  createdAt      DateTime    @default(now())
 
   @@map("ngos")
 }
@@ -52,26 +56,33 @@ model NGOMetric {
 // ── Campaigns ────────────────────────────────────────────
 
 model Campaign {
-  id                String    @id @default(uuid())
+  id                String                  @id @default(uuid())
   ngoId             String
-  ngo               NGO       @relation(fields: [ngoId], references: [id], onDelete: Cascade)
+  ngo               NGO                     @relation(fields: [ngoId], references: [id], onDelete: Cascade)
   title             String
+  description       String?
   domain            String
   lat               Float?
   lng               Float?
   area              String?
-  status            String    @default("draft") // draft | active | completed
+  status            String                  @default("draft") // draft | active | completed
   needScore         Float?
   trustScore        Float?
   impactScore       Float?
-  llmRecommendation String?   // Gemini-generated strategic recommendation
+  fundingGoal       Float?
+  llmRecommendation String?                 // Gemini-generated strategic recommendation
   plannedVolunteers Int?
   actualVolunteers  Int?
   plannedWasteKg    Float?
   actualWasteKg     Float?
   startDate         DateTime?
   endDate           DateTime?
-  createdAt         DateTime  @default(now())
+  participations    CampaignParticipation[]
+  funding           FundingTransaction[]
+  proofs            CampaignProof[]
+  rewardEvents      RewardEvent[]
+  certificates      Certificate[]
+  createdAt         DateTime                @default(now())
 
   @@index([ngoId])
   @@index([domain])
@@ -83,12 +94,21 @@ model Campaign {
 // ── Users ────────────────────────────────────────────────
 
 model User {
-  id        String   @id @default(uuid())
-  name      String?
-  email     String   @unique
-  password  String // bcrypt hashed
-  role      String // 'volunteer' | 'influencer' | 'company' | 'ngo_admin'
-  createdAt DateTime @default(now())
+  id             String                  @id @default(uuid())
+  name           String?
+  email          String                  @unique
+  password       String // bcrypt hashed
+  role           String // 'volunteer' | 'influencer' | 'company' | 'ngo_admin'
+  participations CampaignParticipation[]
+  funding        FundingTransaction[]
+  submittedProof CampaignProof[]
+  rewardEvents    RewardEvent[]
+  certificates    Certificate[]
+  volunteerProfile VolunteerProfile?
+  influencerProfile InfluencerProfile?
+  companyProfile CompanyProfile?
+  ngoProfile       NGOProfile?
+  createdAt      DateTime                @default(now())
 
   @@map("users")
 }
@@ -109,4 +129,157 @@ model LLMInsight {
   @@index([queryKey])
   @@index([expiresAt])
   @@map("llm_insights")
+}
+
+model CampaignParticipation {
+  id          String   @id @default(uuid())
+  campaignId  String
+  userId      String
+  status      String   @default("joined") // joined | checked_in | completed
+  joinedAt    DateTime @default(now())
+  checkedInAt DateTime?
+  checkInLat  Float?
+  checkInLng  Float?
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, userId])
+  @@index([campaignId])
+  @@index([userId])
+  @@map("campaign_participations")
+}
+
+model FundingTransaction {
+  id                String   @id @default(uuid())
+  campaignId        String
+  userId            String?
+  amount            Float
+  platformFee       Float
+  netAmount         Float
+  donorName         String?
+  donorEmail        String?
+  receipt           String?  @unique
+  status            String   @default("pending") // pending | succeeded | failed
+  paymentProvider   String   @default("mock")
+  providerOrderId   String?
+  providerPaymentId String?
+  campaign          Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user              User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([campaignId])
+  @@index([userId])
+  @@index([status])
+  @@map("funding_transactions")
+}
+
+model CampaignProof {
+  id                String   @id @default(uuid())
+  campaignId        String
+  submittedByUserId String?
+  mediaUrl          String
+  mediaType         String   @default("image") // image | video
+  caption           String?
+  geoLat            Float?
+  geoLng            Float?
+  aiValidated       Boolean  @default(false)
+  verified          Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  campaign          Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  submittedBy       User?    @relation(fields: [submittedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([campaignId])
+  @@index([submittedByUserId])
+  @@map("campaign_proofs")
+}
+
+model VolunteerProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  location       String?
+  interests      String[] @default([])
+  availability   String?
+  credits        Int      @default(0)
+  certificates   Int      @default(0)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("volunteer_profiles")
+}
+
+model InfluencerProfile {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  socialHandle     String?
+  platform         String?
+  followers        Int?
+  engagementRate   Float?
+  trustScore       Float?
+  impactScore      Float?
+  verified         Boolean  @default(false)
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("influencer_profiles")
+}
+
+model CompanyProfile {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  companyName   String?
+  industry      String?
+  csrBudget     Float?
+  focusAreas    String[] @default([])
+  verified      Boolean  @default(false)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("company_profiles")
+}
+
+model NGOProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  ngoId          String?  @unique
+  registrationId String?
+  website        String?
+  location       String?
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ngo            NGO?     @relation(fields: [ngoId], references: [id], onDelete: SetNull)
+
+  @@map("ngo_profiles")
+}
+
+model RewardEvent {
+  id          String   @id @default(uuid())
+  userId      String
+  campaignId  String?
+  type        String
+  pointsDelta Int      @default(0)
+  creditsDelta Int     @default(0)
+  description String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaign    Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([campaignId])
+  @@map("reward_events")
+}
+
+model Certificate {
+  id          String   @id @default(uuid())
+  userId      String
+  campaignId  String
+  title       String
+  description String?
+  certificateUrl String?
+  issuedAt    DateTime @default(now())
+  metadata    Json?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, campaignId])
+  @@index([userId])
+  @@index([campaignId])
+  @@map("certificates")
 }

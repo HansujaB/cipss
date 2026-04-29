@@ -129,7 +129,18 @@ export default function CalendarScreen() {
           item.status === 'pending' ? styles.pendingStatus :
           styles.cancelledStatus
         ]}>
-          <Text style={styles.statusText}>{item.status}</Text>
+          <Text
+            style={[
+              styles.statusText,
+              item.status === 'confirmed'
+                ? styles.confirmedStatusText
+                : item.status === 'pending'
+                  ? styles.pendingStatusText
+                  : styles.cancelledStatusText,
+            ]}
+          >
+            {item.status}
+          </Text>
         </View>
       </View>
       
@@ -177,7 +188,12 @@ export default function CalendarScreen() {
           styles.connectionStatus,
           item.connected ? styles.connectedStatus : styles.disconnectedStatus
         ]}>
-          <Text style={styles.connectionText}>
+          <Text
+            style={[
+              styles.connectionText,
+              item.connected ? styles.connectedStatusText : styles.disconnectedStatusText,
+            ]}
+          >
             {item.connected ? 'Connected' : 'Disconnected'}
           </Text>
         </View>
@@ -676,15 +692,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  confirmedStatus: {
+  confirmedStatusText: {
     color: '#065F46',
   },
 
-  pendingStatus: {
+  pendingStatusText: {
     color: '#92400E',
   },
 
-  cancelledStatus: {
+  cancelledStatusText: {
     color: '#991B1B',
   },
 
@@ -970,11 +986,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  connectedStatus: {
+  connectedStatusText: {
     color: '#065F46',
   },
 
-  disconnectedStatus: {
+  disconnectedStatusText: {
     color: '#991B1B',
   },
 

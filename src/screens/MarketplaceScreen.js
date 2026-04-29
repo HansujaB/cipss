@@ -233,13 +233,24 @@ export default function MarketplaceScreen() {
     <View style={styles.skillCard}>
       <View style={styles.skillHeader}>
         <Text style={styles.skillName}>{item.name}</Text>
-        <View style={[
-          styles.demandBadge,
-          item.demand === 'high' ? styles.highDemand :
-          item.demand === 'medium' ? styles.mediumDemand :
-          styles.lowDemand
-        ]}>
-          <Text style={styles.demandText}>{item.demand}</Text>
+        <View
+          style={[
+            styles.demandBadge,
+            item.demand === 'high' ? styles.highDemand : item.demand === 'medium' ? styles.mediumDemand : styles.lowDemand,
+          ]}
+        >
+          <Text
+            style={[
+              styles.demandText,
+              item.demand === 'high'
+                ? styles.highDemandText
+                : item.demand === 'medium'
+                  ? styles.mediumDemandText
+                  : styles.lowDemandText,
+            ]}
+          >
+            {item.demand}
+          </Text>
         </View>
       </View>
       <Text style={styles.skillCategory}>{item.category}</Text>
@@ -274,7 +285,14 @@ export default function MarketplaceScreen() {
                     ]}
                     onPress={() => handleCategorySelect(category)}
                   >
-                    <Text style={styles.categoryChipText}>{category.icon} {category.name}</Text>
+                    <Text
+                      style={[
+                        styles.categoryChipText,
+                        selectedCategory?.name === category.name && styles.categoryChipSelectedText,
+                      ]}
+                    >
+                      {category.icon} {category.name}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -288,7 +306,14 @@ export default function MarketplaceScreen() {
                     ]}
                     onPress={() => handleFilter('featured', !filters.featured)}
                   >
-                    <Text style={styles.filterChipText}>Featured</Text>
+                    <Text
+                      style={[
+                        styles.filterChipText,
+                        filters.featured && styles.filterChipActiveText,
+                      ]}
+                    >
+                      Featured
+                    </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[
@@ -297,7 +322,14 @@ export default function MarketplaceScreen() {
                     ]}
                     onPress={() => handleFilter('verified', !filters.verified)}
                   >
-                    <Text style={styles.filterChipText}>Verified</Text>
+                    <Text
+                      style={[
+                        styles.filterChipText,
+                        filters.verified && styles.filterChipActiveText,
+                      ]}
+                    >
+                      Verified
+                    </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[
@@ -306,7 +338,14 @@ export default function MarketplaceScreen() {
                     ]}
                     onPress={() => handleFilter('remote', !filters.remote)}
                   >
-                    <Text style={styles.filterChipText}>Remote</Text>
+                    <Text
+                      style={[
+                        styles.filterChipText,
+                        filters.remote && styles.filterChipActiveText,
+                      ]}
+                    >
+                      Remote
+                    </Text>
                   </TouchableOpacity>
                 </View>
                 
@@ -321,7 +360,12 @@ export default function MarketplaceScreen() {
                       ]}
                       onPress={() => handleSort(sort)}
                     >
-                      <Text style={styles.sortChipText}>
+                      <Text
+                        style={[
+                          styles.sortChipText,
+                          sortBy === sort && styles.sortChipActiveText,
+                        ]}
+                      >
                         {sort.replace('_', ' ').charAt(0).toUpperCase() + sort.slice(1).replace('_', ' ')}
                       </Text>
                     </TouchableOpacity>
@@ -408,7 +452,7 @@ export default function MarketplaceScreen() {
 
       case 'skills':
         return (
-          <View style={styles.skillsContainer}>
+          <View style={styles.skillsTabContainer}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Popular Skills</Text>
             </View>
@@ -830,7 +874,7 @@ const styles = StyleSheet.create({
     color: '#374151',
   },
 
-  categoryChipSelected: {
+  categoryChipSelectedText: {
     color: '#FFFFFF',
   },
 
@@ -862,7 +906,7 @@ const styles = StyleSheet.create({
     color: '#374151',
   },
 
-  filterChipActive: {
+  filterChipActiveText: {
     color: '#FFFFFF',
   },
 
@@ -894,7 +938,7 @@ const styles = StyleSheet.create({
     color: '#374151',
   },
 
-  sortChipActive: {
+  sortChipActiveText: {
     color: '#FFFFFF',
   },
 
@@ -1227,7 +1271,7 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
   },
 
-  skillsContainer: {
+  skillsTabContainer: {
     flex: 1,
   },
 
@@ -1281,15 +1325,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  highDemand: {
+  highDemandText: {
     color: '#DC2626',
   },
 
-  mediumDemand: {
+  mediumDemandText: {
     color: '#D97706',
   },
 
-  lowDemand: {
+  lowDemandText: {
     color: '#4F46E5',
   },
 

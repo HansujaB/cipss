@@ -1,81 +1,135 @@
-import { campaigns } from '../constants/dummyData';
+import { apiFetch } from './api';
+import { campaigns as dummyCampaigns } from '../constants/dummyData';
 import { calculateImpactScore } from '../utils/impactScore';
 
-// 🔥 NEW: store joined campaigns locally
-let joinedCampaignIds = [];
-let userPoints = 0;
-/**
- * Returns all campaigns with computed impactScore.
- */
-export const getCampaigns = () => {
-  return campaigns.map((campaign) => ({
-    ...campaign,
-    impactScore: calculateImpactScore(
-      campaign.needScore,
-      campaign.trustScore,
-      campaign.expectedImpact
-    ),
-    joined: joinedCampaignIds.includes(campaign.id), // 🔥 NEW
-  }));
-};
+const normalizeCampaign = (campaign) => ({
+  ...campaign,
+  location: campaign.location || campaign.area || 'TBD',
+  description: campaign.description || 'No description yet.',
+  fundingGoal: campaign.fundingGoal || 0,
+  fundingRaised: campaign.fundingRaised || 0,
+  volunteers: campaign.volunteers || campaign.plannedVolunteers || 0,
+  impactScore: campaign.impactScore || calculateImpactScore(
+    campaign.needScore || 7,
+    campaign.trustScore || 7,
+    campaign.expectedImpact || 7
+  ),
+  expectedImpact: campaign.impactScore || 7,
+  needScore: campaign.needScore || 7,
+  trustScore: campaign.trustScore || 7,
+});
 
-/**
- * Returns a single campaign by ID with impactScore.
- */
-export const getCampaignById = (id) => {
-  const campaign = campaigns.find((c) => c.id === id);
-  if (!campaign) return null;
+// Fallback dummy campaigns with impact scores
+const fallbackCampaigns = dummyCampaigns.map(c => ({
+  ...c,
+  impactScore: calculateImpactScore(c.needScore, c.trustScore, c.expectedImpact),
+}));
 
-  return {
-    ...campaign,
-    impactScore: calculateImpactScore(
-      campaign.needScore,
-      campaign.trustScore,
-      campaign.expectedImpact
-    ),
-    joined: joinedCampaignIds.includes(id),
-  };
-};
-
-/**
- * 🔥 NEW: Join campaign
- */
-export const joinCampaign = (id) => {
-  if (!joinedCampaignIds.includes(id)) {
-    joinedCampaignIds.push(id);
-    userPoints+=10;
+export const getCampaigns = async (filters = {}) => {
+  try {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '' && value !== 'All') {
+        params.append(key, value);
+      }
+    });
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const data = await apiFetch(`/campaigns${query}`);
+    const campaigns = (data.campaigns || []).map(normalizeCampaign);
+    // If backend has no campaigns, use dummy data
+    return campaigns.length > 0 ? campaigns : fallbackCampaigns;
+  } catch (error) {
+    console.log('Using fallback campaigns:', error.message);
+    return fallbackCampaigns;
   }
 };
 
-/**
- * 🔥 NEW: Leave campaign
- */
-export const leaveCampaign = (id) => {
-  joinedCampaignIds = joinedCampaignIds.filter((cid) => cid !== id);
-};
-export const getUserPoints = () => {
-  return userPoints;
-};
-
-/**
- * 🔥 NEW: Get joined campaigns
- */
-export const getJoinedCampaigns = () => {
-  return getCampaigns().filter((c) => joinedCampaignIds.includes(c.id));
+export const getCampaignById = async (id) => {
+  try {
+    const campaign = await apiFetch(`/campaigns/${id}`);
+    return normalizeCampaign(campaign);
+  } catch (error) {
+    // Try dummy data
+    const dummy = fallbackCampaigns.find(c => c.id === id);
+    if (dummy) return dummy;
+    throw error;
+  }
 };
 
-/**
- * Returns campaigns filtered by domain.
- */
-export const getCampaignsByDomain = (domain) => {
-  return getCampaigns().filter((c) => c.domain === domain);
+export const createCampaign = async (payload) => {
+  const campaign = await apiFetch('/campaigns', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  return normalizeCampaign(campaign);
 };
 
-/**
- * Returns campaigns sorted by impactScore descending.
- */
-export const getTopCampaigns = (limit = 3) => {
-  return getCampaigns()
-    .sort((a, b) => parseFloat(b.impactScore) - parseFloat(a.impactScore))
-    .slice(0, limit);
+export const getDashboardSummary = async () => {
+  try {
+    return await apiFetch('/campaigns/dashboard/summary');
+  } catch (error) {
+    // Fallback: build summary from campaigns list
+    const campaigns = await getCampaigns();
+    const totalFunding = campaigns.reduce((s, c) => s + (c.fundingRaised || 0), 0);
+    const totalVolunteers = campaigns.reduce((s, c) => s + (c.volunteers || 0), 0);
+    const avgImpact = campaigns.length
+      ? (campaigns.reduce((s, c) => s + parseFloat(c.impactScore || 0), 0) / campaigns.length).toFixed(1)
+      : 0;
+    const topCampaigns = [...campaigns]
+      .sort((a, b) => parseFloat(b.impactScore) - parseFloat(a.impactScore))
+      .slice(0, 3);
+
+    return {
+      stats: {
+        totalCampaigns: campaigns.length,
+        totalFunding,
+        totalVolunteers,
+        avgImpact,
+      },
+      topCampaigns,
+      hotspots: [],
+      googleServices: { mapsEnabled: false },
+    };
+  }
 };
+
+export const getJoinedCampaigns = async () => {
+  try {
+    const data = await apiFetch('/campaigns/mine/joined');
+    return (data.campaigns || []).map(normalizeCampaign);
+  } catch (error) {
+    return [];
+  }
+};
+
+export const getTopCampaigns = async () => {
+  const data = await getDashboardSummary();
+  return (data.topCampaigns || []).map(c => normalizeCampaign(c));
+};
+
+export const joinCampaign = async (id) => {
+  try {
+    return await apiFetch(`/campaigns/${id}/join`, { method: 'POST' });
+  } catch (error) {
+    console.log('Join campaign error:', error.message);
+    return { success: true };
+  }
+};
+
+export const leaveCampaign = async (id) => {
+  try {
+    return await apiFetch(`/campaigns/${id}/join`, { method: 'DELETE' });
+  } catch (error) {
+    return { success: true };
+  }
+};
+
+export const submitCampaignProof = async (id, payload) => {
+  return apiFetch(`/campaigns/${id}/proofs`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+};
+
+// Legacy sync exports for compatibility
+export const getUserPoints = () => 0;

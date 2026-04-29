@@ -12,8 +12,10 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useAuth } from '../context/AuthContext';
 
 export default function LoginScreen({ navigation }) {
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -33,11 +35,8 @@ export default function LoginScreen({ navigation }) {
     setLoading(true);
 
     try {
-      // Simulate API call for demo
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // For demo purposes - accept any valid-looking credentials
-      if (email.includes('@') && password.length >= 6) {
+      const result = await login(email, password);
+      if (result.success) {
         Alert.alert(
           'Login Successful! 🎉',
           `Welcome back!`,
@@ -45,19 +44,19 @@ export default function LoginScreen({ navigation }) {
             {
               text: 'Continue',
               onPress: () => {
-                // Use global function to switch to main app
-                if (global.navigateToMainApp) {
-                  global.navigateToMainApp();
-                }
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'Dashboard' }],
+                });
               },
             },
           ]
         );
       } else {
-        Alert.alert('Error', 'Invalid email or password');
+        Alert.alert('Error', result.error || 'Invalid email or password');
       }
     } catch (error) {
-      Alert.alert('Error', 'Login failed. Please try again.');
+      Alert.alert('Error', error.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -148,12 +147,6 @@ export default function LoginScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          {/* Demo Credentials */}
-          <View style={styles.demoBox}>
-            <Text style={styles.demoTitle}>Demo Credentials</Text>
-            <Text style={styles.demoText}>Email: demo@example.com</Text>
-            <Text style={styles.demoText}>Password: password123</Text>
-          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

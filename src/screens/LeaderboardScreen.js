@@ -185,7 +185,7 @@ export default function LeaderboardScreen({ navigation }) {
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [fadeAnim, podiumAnim, slideAnim]);
 
   const handleTabChange = (tab) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);

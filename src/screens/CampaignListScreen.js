@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import CampaignCard from '../components/CampaignCard';
 import NavigationHeader from '../components/NavigationHeader';
@@ -16,7 +17,7 @@ import BottomTabBar from '../components/BottomTabBar';
 import SideDrawer from '../components/SideDrawer';
 import { getCampaigns, joinCampaign } from '../services/campaignService';
 
-const DOMAINS = ['All', 'waste', 'environment', 'education', 'health'];
+const DOMAINS = ['All', 'waste_management', 'environment', 'education'];
 
 export default function CampaignListScreen({ navigation }) {
   const [campaigns, setCampaigns] = useState([]);
@@ -24,6 +25,7 @@ export default function CampaignListScreen({ navigation }) {
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const handleMenuPress = () => {
     setDrawerOpen(true);
@@ -85,9 +87,20 @@ export default function CampaignListScreen({ navigation }) {
   ];
 
   useEffect(() => {
-    const data = getCampaigns();
-    setCampaigns(data);
-    setFiltered(data);
+    const loadCampaigns = async () => {
+      try {
+        setLoading(true);
+        const data = await getCampaigns();
+        setCampaigns(data);
+        setFiltered(data);
+      } catch (error) {
+        Alert.alert('Error', error.message || 'Failed to load campaigns');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCampaigns();
   }, []);
 
   useEffect(() => {
@@ -108,10 +121,19 @@ export default function CampaignListScreen({ navigation }) {
     setFiltered(result);
   }, [search, activeFilter, campaigns]);
 
-  // 🔥 NEW: Join handler
-  const handleJoin = (campaignId) => {
-    joinCampaign(campaignId);
-    alert('Joined campaign successfully!');
+  // 🔥 Join handler - updates button state
+  const handleJoin = async (campaignId) => {
+    try {
+      await joinCampaign(campaignId);
+      // Update local state to reflect joined status
+      const updateJoined = (list) =>
+        list.map(c => c.id === campaignId ? { ...c, joined: true } : c);
+      setCampaigns(prev => updateJoined(prev));
+      setFiltered(prev => updateJoined(prev));
+      Alert.alert('🎉 Joined!', 'You have successfully joined this campaign!');
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Failed to join campaign');
+    }
   };
 
   return (
@@ -170,34 +192,39 @@ export default function CampaignListScreen({ navigation }) {
         />
 
         {/* Campaign List */}
-        <FlatList
-          data={filtered}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.list}
-          renderItem={({ item }) => (
-            <View>
-              <CampaignCard
-                campaign={item}
-                onPress={(c) =>
-                  navigation.navigate('CampaignDetail', { campaign: c })
-                }
-                onJoin={handleJoin}
-              />
+        {loading ? (
+          <View style={styles.loaderWrap}>
+            <ActivityIndicator size="large" color="#1D0A69" />
+          </View>
+        ) : (
+          <FlatList
+            data={filtered}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.list}
+            renderItem={({ item }) => (
+              <View>
+                <CampaignCard
+                  campaign={item}
+                  onPress={(c) =>
+                    navigation.navigate('CampaignDetail', { campaign: c })
+                  }
+                  onJoin={handleJoin}
+                />
 
-              {/* 🔥 NEW: Join Button */}
-              <TouchableOpacity
-                style={styles.joinBtn}
-                onPress={() => handleJoin(item.id)}
-              >
-                <Text style={styles.joinText}>Join Campaign</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-          ListEmptyComponent={
-            <Text style={styles.empty}>No campaigns found.</Text>
-          }
-        />
+                <TouchableOpacity
+                  style={styles.joinBtn}
+                  onPress={() => handleJoin(item.id)}
+                >
+                  <Text style={styles.joinText}>Join Campaign</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            ListEmptyComponent={
+              <Text style={styles.empty}>No campaigns found.</Text>
+            }
+          />
+        )}
       </View>
       
       <BottomTabBar
@@ -258,6 +285,11 @@ const styles = StyleSheet.create({
   },
 
   filterRow: { marginBottom: 14, flexGrow: 0 },
+  loaderWrap: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 
   filterBtn: {
     paddingHorizontal: 14,

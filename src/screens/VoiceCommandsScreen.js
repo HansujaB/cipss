@@ -189,7 +189,7 @@ export default function VoiceCommandsScreen() {
       styles.historyItem,
       !item.executed && styles.failedHistory
     ]}>
-      <View style={styles.historyHeader}>
+      <View style={styles.historyItemHeader}>
         <Text style={styles.historyCommand}>{item.command}</Text>
         <Text style={styles.historyConfidence}>
           {Math.round(item.confidence * 100)}%
@@ -738,7 +738,7 @@ const styles = StyleSheet.create({
     borderLeftColor: '#EF4444',
   },
 
-  historyHeader: {
+  historyItemHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

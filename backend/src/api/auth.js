@@ -11,6 +11,14 @@ const prisma = require('../lib/prisma');
 const { handleValidationErrors } = require('../middleware/validate');
 
 const router = Router();
+const ROLE_ALIASES = {
+  ngo: 'ngo_admin',
+  donor: 'company',
+};
+
+function normalizeRole(role) {
+  return ROLE_ALIASES[role] || role;
+}
 
 // ── POST /auth/register ──────────────────────────────────
 
@@ -23,13 +31,14 @@ router.post(
       .withMessage('Password must be at least 6 characters'),
     body('name').optional().isString(),
     body('role')
-      .isIn(['volunteer', 'influencer', 'company', 'ngo_admin'])
+      .isIn(['volunteer', 'influencer', 'company', 'ngo_admin', 'ngo', 'donor'])
       .withMessage('Role must be volunteer, influencer, company, or ngo_admin'),
     handleValidationErrors,
   ],
   async (req, res, next) => {
     try {
-      const { email, password, name, role } = req.body;
+      const { email, password, name } = req.body;
+      const role = normalizeRole(req.body.role);
 
       // Check if user already exists
       const existing = await prisma.user.findUnique({ where: { email } });
@@ -43,7 +52,16 @@ router.post(
 
       // Create user
       const user = await prisma.user.create({
-        data: { email, password: hashed, name, role },
+        data: {
+          email,
+          password: hashed,
+          name,
+          role,
+          volunteerProfile: role === 'volunteer' ? { create: {} } : undefined,
+          influencerProfile: role === 'influencer' ? { create: {} } : undefined,
+          companyProfile: role === 'company' ? { create: {} } : undefined,
+          ngoProfile: role === 'ngo_admin' ? { create: {} } : undefined,
+        },
         select: { id: true, email: true, name: true, role: true, createdAt: true },
       });
 

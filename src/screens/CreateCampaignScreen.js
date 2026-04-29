@@ -12,12 +12,12 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { createCampaign } from '../services/campaignService';
 
 const DOMAINS = [
   { key: 'waste_management', label: '♻️ Waste Management', color: '#F97316' },
   { key: 'education', label: '📚 Education', color: '#3B82F6' },
   { key: 'environment', label: '🌱 Environment', color: '#22C55E' },
-  { key: 'health', label: '💧 Health', color: '#EC4899' },
 ];
 
 export default function CreateCampaignScreen({ navigation }) {
@@ -34,6 +34,15 @@ export default function CreateCampaignScreen({ navigation }) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [expectedImpact, setExpectedImpact] = useState('');
+
+  const toIsoDate = (value) => {
+    if (!value) return undefined;
+    const parts = value.split('/');
+    if (parts.length !== 3) return undefined;
+    const [day, month, year] = parts;
+    const parsed = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
+    return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
+  };
 
   const validateStep1 = () => {
     if (!title.trim()) return Alert.alert('Error', 'Please enter a campaign title');
@@ -58,21 +67,29 @@ export default function CreateCampaignScreen({ navigation }) {
     setLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await createCampaign({
+        title,
+        description,
+        domain,
+        area: location,
+        funding_goal: parseFloat(fundingGoal),
+        planned_volunteers: parseInt(volunteersNeeded, 10),
+        start_date: toIsoDate(startDate),
+        end_date: toIsoDate(endDate),
+      });
 
       Alert.alert(
         'Success! 🎉',
-        'Your campaign has been created and is pending approval.',
+        'Your campaign has been created successfully.',
         [
           {
             text: 'View Campaign',
-            onPress: () => navigation.navigate('CampaignList'),
+            onPress: () => navigation.navigate('Campaigns'),
           },
         ]
       );
     } catch (error) {
-      Alert.alert('Error', 'Failed to create campaign. Please try again.');
+      Alert.alert('Error', error.message || 'Failed to create campaign. Please try again.');
     } finally {
       setLoading(false);
     }

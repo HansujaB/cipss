@@ -12,13 +12,8 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import {
-  createPaymentOrder,
-  verifyPayment,
-  mockVerifyPayment,
-  calculateFees,
-  openRazorpayCheckout,
-} from '../services/paymentService';
+import RazorpayCheckout from 'react-native-razorpay';
+import { calculateFees } from '../services/paymentService';
 import { getScoreColor } from '../utils/impactScore';
 
 const QUICK_AMOUNTS = [500, 1000, 2500, 5000];
@@ -55,80 +50,43 @@ export default function FundingScreen({ route, navigation }) {
     setLoading(true);
 
     try {
-      // Create payment order
-      const orderData = await createPaymentOrder(
-        campaign.id,
-        parsed,
-        donorName || 'Anonymous',
-        donorEmail || null
-      );
-
-      // Development mode - use mock verification
-      if (orderData.development) {
-        Alert.alert(
-          'Development Mode',
-          'Razorpay not configured. Using mock payment flow.',
-          [
-            {
-              text: 'Proceed',
-              onPress: async () => {
-                try {
-                  const verifyData = await mockVerifyPayment(orderData.transaction.id);
-                  if (verifyData.success) {
-                    setTxn({
-                      id: verifyData.transaction.id,
-                      amount: parsed,
-                      donorName: donorName || 'Anonymous',
-                      timestamp: new Date().toISOString(),
-                      receipt: verifyData.transaction.receipt,
-                      mock: true,
-                    });
-                    setSubmitted(true);
-                  }
-                } catch (error) {
-                  Alert.alert('Error', error.message);
-                } finally {
-                  setLoading(false);
-                }
-              },
-            },
-          ]
-        );
-        return;
-      }
-
-      // Production - Open Razorpay checkout
-      const paymentResult = await openRazorpayCheckout(
-        orderData.order,
-        orderData.razorpay_key,
-        {
+      // Use Razorpay directly with test key (no backend order needed for test mode)
+      const options = {
+        description: `Fund ${campaign.title}`,
+        image: 'https://cipss-platform-b289f.web.app/favicon.ico',
+        currency: 'INR',
+        key: 'rzp_test_SKouY1M9KggwpT',
+        amount: parsed * 100, // in paise
+        name: 'CIPSS',
+        prefill: {
+          email: donorEmail || 'donor@cipss.com',
+          contact: '',
           name: donorName || 'Anonymous',
-          email: donorEmail,
-          description: `Fund ${campaign.title}`,
-        }
-      );
+        },
+        theme: { color: '#1D0A69' },
+      };
 
-      // Verify payment
-      const verifyData = await verifyPayment(
-        paymentResult.orderId,
-        paymentResult.paymentId,
-        paymentResult.signature
-      );
-
-      if (verifyData.success) {
-        setTxn({
-          id: verifyData.transaction.id,
-          amount: parsed,
-          donorName: donorName || 'Anonymous',
-          timestamp: new Date().toISOString(),
-          receipt: verifyData.transaction.receipt,
+      RazorpayCheckout.open(options)
+        .then((data) => {
+          setTxn({
+            id: data.razorpay_payment_id || `TXN_${Date.now()}`,
+            amount: parsed,
+            donorName: donorName || 'Anonymous',
+            timestamp: new Date().toISOString(),
+            receipt: `CIPSS_${Date.now()}`,
+          });
+          setSubmitted(true);
+          setLoading(false);
+        })
+        .catch((error) => {
+          setLoading(false);
+          if (error.code !== 'PAYMENT_CANCELLED') {
+            Alert.alert('Payment Error', error.description || 'Payment failed');
+          }
         });
-        setSubmitted(true);
-      }
     } catch (error) {
-      Alert.alert('Payment Error', error.message);
-    } finally {
       setLoading(false);
+      Alert.alert('Error', error.message || 'Something went wrong');
     }
   };
 
@@ -145,7 +103,7 @@ export default function FundingScreen({ route, navigation }) {
             <Text style={styles.txnRow}>Donor: <Text style={styles.txnVal}>{txn.donorName}</Text></Text>
             <Text style={styles.txnRow}>Time: <Text style={styles.txnVal}>{new Date(txn.timestamp).toLocaleTimeString()}</Text></Text>
           </View>
-          <TouchableOpacity style={[styles.backBtn, { backgroundColor: scoreColor }]} onPress={() => navigation.navigate('MainApp', { screen: 'Campaigns' })}>
+          <TouchableOpacity style={[styles.backBtn, { backgroundColor: scoreColor }]} onPress={() => navigation.navigate('Campaigns')}>
             <Text style={styles.backBtnText}>Back to Campaigns</Text>
           </TouchableOpacity>
         </View>

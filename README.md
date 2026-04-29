@@ -1,89 +1,76 @@
-# CSR Impact App
+# CIPSS
 
-A React Native app for tracking and funding CSR (Corporate Social Responsibility) campaigns with an AI-powered impact scoring system.
+Data-driven social impact platform connecting NGOs, CSR teams, influencers, and volunteers.
 
----
+## Stack
 
-## 📁 Project Structure
+- Main database: PostgreSQL via Prisma
+- Google services: Vertex AI (Gemini), Google Maps, optional Google Cloud Storage
+- Frontends: React Native app in [src](/Users/meharkapoor7/cipss/src) and React web app in [web](/Users/meharkapoor7/cipss/web)
+- Backend API: Express in [backend/src](/Users/meharkapoor7/cipss/backend/src)
 
-```
-CSR-Impact-App/
-├── frontend/                  # React Native app (Person 3's work)
-│   ├── src/
-│   │   ├── screens/           # All screen components
-│   │   ├── components/        # Reusable UI components
-│   │   ├── services/          # Data & Firebase logic
-│   │   ├── utils/             # Impact score calculations
-│   │   ├── navigation/        # React Navigation setup
-│   │   └── constants/         # Dummy/seed data
-│   └── App.js
-├── backend/                   # Firebase Cloud Functions (Person 4)
-│   └── functions/index.js
-└── README.md
-```
+## Core backend capabilities
 
----
+- Auth with role-aware onboarding
+- Campaign creation, participation, check-in, proof submission, and certificates
+- CSR funding with Razorpay order creation and signature verification
+- NGO metrics, hotspots, need/trust/impact scoring
+- Influencer profiles, trust scoring, and fraud signal detection
+- Reward credits and certificate issuance for volunteers
 
-## 🚀 Setup Instructions
+## Environment
 
-### 1. Install dependencies
+Backend env lives in [backend/.env.example](/Users/meharkapoor7/cipss/backend/.env.example).
+
+Important variables:
+
+- `DATABASE_URL`: PostgreSQL connection string
+- `GOOGLE_CLOUD_PROJECT`
+- `GOOGLE_CLOUD_LOCATION`
+- `GEMINI_MODEL`
+- `GOOGLE_MAPS_API_KEY`
+- `GCS_BUCKET`
+- `RAZORPAY_KEY_ID`
+- `RAZORPAY_KEY_SECRET`
+
+## Local setup
+
+### Backend
+
 ```bash
-cd frontend
+cd backend
 npm install
+npx prisma generate
+npx prisma migrate dev
+npm run seed
+npm run dev
 ```
 
-### 2. Install navigation packages
-```bash
-npm install @react-navigation/native @react-navigation/bottom-tabs @react-navigation/native-stack
-npm install react-native-screens react-native-safe-area-context
-```
+### Mobile app
 
-### 3. iOS only
 ```bash
-cd ios && pod install && cd ..
-```
-
-### 4. Run the app
-```bash
-# Android
+npm install
+npm test
 npx react-native run-android
-
-# iOS
-npx react-native run-ios
 ```
 
----
+### Web app
 
-## ⚡ Impact Score Formula
+```bash
+cd web
+npm install
+npm run dev
+```
 
-The impact score is a **weighted average** of three sub-scores:
+## PostgreSQL + Google Cloud note
 
-| Factor | Weight |
-|---|---|
-| Need Score | 30% |
-| Trust Score | 30% |
-| Expected Impact | 40% |
+Use PostgreSQL as the source of truth. Google services should complement it, not replace it:
 
-**Score Legend:**
-- 🟢 8.0+ → High Impact
-- 🟡 6.0–7.9 → Moderate Impact
-- 🔴 Below 6.0 → Needs Review
+- Cloud SQL PostgreSQL for production data
+- Vertex AI for LLM insights
+- Google Maps for campaign geocoding and hotspot navigation
+- Google Cloud Storage for media proof uploads
 
----
+## Current migration status
 
-## 📱 Screens
-
-| Screen | Description |
-|---|---|
-| `DashboardScreen` | Overview stats + top campaigns |
-| `CampaignListScreen` | Browse, search, filter all campaigns |
-| `CampaignDetailScreen` | Full details + score breakdown + funding progress |
-| `FundingScreen` | Submit a funding contribution |
-
----
-
-## 🔥 Firebase Setup
-
-Replace placeholder values in `src/services/firebase.js` with your actual Firebase config from the Firebase Console.
-
----
+The Prisma schema in [backend/prisma/schema.prisma](/Users/meharkapoor7/cipss/backend/prisma/schema.prisma) includes the latest PostgreSQL and Google-service feature slice, but the generated migration files are not committed yet. Run `npx prisma migrate dev` in [backend](/Users/meharkapoor7/cipss/backend) against the target database to create and apply the migration before deploying.

@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useAuth } from '../context/AuthContext';
 
 // Import all screens
 import DashboardScreen from '../screens/DashboardScreen';
@@ -29,7 +30,6 @@ import ChatScreen from '../screens/ChatScreen';
 import LearningScreen from '../screens/LearningScreen';
 import VoiceCommandsScreen from '../screens/VoiceCommandsScreen';
 import BlockchainScreen from '../screens/BlockchainScreen';
-// import LocalizationScreen from '../screens/LocalizationScreen'; // Temporarily disabled
 import OfflineScreen from '../screens/OfflineScreen';
 import PushNotificationScreen from '../screens/PushNotificationScreen';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
@@ -49,76 +49,74 @@ import NotificationScreen from '../screens/NotificationScreen';
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
+  const { isLoggedIn, loading } = useAuth();
+
+  if (loading) return null;
+
   return (
     <NavigationContainer>
-      <Stack.Navigator 
-        initialRouteName="Dashboard"
-        screenOptions={{ 
-          headerShown: false,
-          animation: 'slide_from_right'
-        }}
+      <Stack.Navigator
+        initialRouteName={isLoggedIn ? 'Dashboard' : 'Login'}
+        screenOptions={{ headerShown: false, animation: 'slide_from_right' }}
       >
-        {/* Main Screens */}
+        {/* Auth Screens */}
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
+
+        {/* Main */}
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="Campaigns" component={CampaignListScreen} />
         <Stack.Screen name="CampaignDetail" component={CampaignDetailScreen} />
         <Stack.Screen name="Funding" component={FundingScreen} />
         <Stack.Screen name="CreateCampaign" component={CreateCampaignScreen} />
-        
-        {/* Leaderboard & Rankings */}
+
+        {/* Leaderboard */}
         <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
         <Stack.Screen name="TeamLeaderboard" component={TeamLeaderboardScreen} />
         <Stack.Screen name="DomainLeaderboard" component={DomainLeaderboardScreen} />
         <Stack.Screen name="GrowthChart" component={GrowthChartScreen} />
         <Stack.Screen name="Comparison" component={ComparisonScreen} />
-        
-        {/* Achievements & Rewards */}
+
+        {/* Achievements */}
         <Stack.Screen name="Achievements" component={AchievementsScreen} />
         <Stack.Screen name="Badges" component={ARBadgesScreen} />
+        <Stack.Screen name="ARBadges" component={ARBadgesScreen} />
         <Stack.Screen name="Streak" component={StreakScreen} />
         <Stack.Screen name="PowerUp" component={PowerUpScreen} />
         <Stack.Screen name="Challenges" component={ChallengesScreen} />
         <Stack.Screen name="Rewards" component={RewardsScreen} />
-        
-        {/* Social & Community */}
+
+        {/* Social */}
         <Stack.Screen name="Network" component={NetworkScreen} />
         <Stack.Screen name="Comments" component={CommentsScreen} />
         <Stack.Screen name="Mentorship" component={MentorshipScreen} />
         <Stack.Screen name="Chat" component={ChatScreen} />
-        
-        {/* Impact & Analytics */}
+
+        {/* Analytics */}
         <Stack.Screen name="ImpactDashboard" component={ImpactDashboardScreen} />
         <Stack.Screen name="Analytics" component={AnalyticsScreen} />
         <Stack.Screen name="History" component={HistoryScreen} />
-        
-        {/* Advanced Features */}
+
+        {/* Advanced */}
         <Stack.Screen name="AIMatching" component={AIMatchingScreen} />
         <Stack.Screen name="Learning" component={LearningScreen} />
         <Stack.Screen name="VoiceCommands" component={VoiceCommandsScreen} />
-        <Stack.Screen name="ARBadges" component={ARBadgesScreen} />
         <Stack.Screen name="Blockchain" component={BlockchainScreen} />
-        {/* <Stack.Screen name="Localization" component={LocalizationScreen} /> */}
         <Stack.Screen name="Offline" component={OfflineScreen} />
         <Stack.Screen name="PushNotifications" component={PushNotificationScreen} />
-        
-        {/* Marketplace & Events */}
+
+        {/* Marketplace */}
         <Stack.Screen name="CSRMarketplace" component={CSRMarketplaceScreen} />
         <Stack.Screen name="Marketplace" component={MarketplaceScreen} />
         <Stack.Screen name="Calendar" component={CalendarScreen} />
         <Stack.Screen name="VirtualEvents" component={VirtualEventsScreen} />
-        
+
         {/* Utilities */}
         <Stack.Screen name="Export" component={ExportScreen} />
         <Stack.Screen name="Spotlight" component={SpotlightScreen} />
         <Stack.Screen name="APIDashboard" component={APIDashboardScreen} />
         <Stack.Screen name="OrganizationBadges" component={OrganizationBadgesScreen} />
         <Stack.Screen name="Notifications" component={NotificationScreen} />
-        
-        {/* Auth */}
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
-        
-        {/* Profile */}
         <Stack.Screen name="Profile" component={ProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>

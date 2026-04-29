@@ -10,7 +10,14 @@ import {
   Alert,
   Animated,
 } from 'react-native';
-import { POWER_UPS, USER_POWER_UPS, USER_COINS, usePowerUp, buyPowerUp, getActivePowerUps } from '../services/powerUpService';
+import {
+  POWER_UPS,
+  USER_POWER_UPS,
+  USER_COINS,
+  usePowerUp as activatePowerUp,
+  buyPowerUp,
+  getActivePowerUps,
+} from '../services/powerUpService';
 
 export default function PowerUpScreen() {
   const [userCoins, setUserCoins] = useState(USER_COINS);
@@ -45,7 +52,7 @@ export default function PowerUpScreen() {
   };
 
   const handleUsePowerUp = (powerUp) => {
-    const result = usePowerUp(powerUp.id, userCoins);
+    const result = activatePowerUp(powerUp.id, userCoins);
     
     if (result.success) {
       Alert.alert('Activated!', result.message);
