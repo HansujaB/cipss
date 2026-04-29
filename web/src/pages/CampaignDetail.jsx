@@ -28,12 +28,16 @@ export default function CampaignDetail() {
   }, [id]);
 
   if (campaign === null) return <div className={styles.notFound}>Loading campaign...</div>;
+  if (!campaign) return <div className={styles.notFound}>Campaign not found. <Link to="/campaigns">Go back</Link></div>;
+
+  const fundingRaised = campaign.fundingRaised || 0;
+  const fundingGoal = campaign.fundingGoal || 1;
   if (campaign === undefined) return <div className={styles.notFound}>Campaign not found. <Link to="/campaigns">Go back</Link></div>;
 
   const scoreColor = getScoreColor(campaign.impactScore);
   const domainColor = domainColors[campaign.domain] || '#888';
-  const pct = campaign.fundingGoal > 0
-    ? Math.min(Math.round((campaign.fundingRaised / campaign.fundingGoal) * 100), 100)
+  const pct = fundingGoal > 0
+    ? Math.min(Math.round((fundingRaised / fundingGoal) * 100), 100)
     : 0;
 
   return (
@@ -70,8 +74,8 @@ export default function CampaignDetail() {
           <div className={styles.fundingFill} style={{ width: `${pct}%`, background: scoreColor }} />
         </div>
         <div className={styles.fundingMeta}>
-          <span>₹{campaign.fundingRaised.toLocaleString()} raised</span>
-          <span>Goal: ₹{campaign.fundingGoal.toLocaleString()}</span>
+          <span>₹{fundingRaised.toLocaleString()} raised</span>
+          <span>Goal: ₹{fundingGoal.toLocaleString()}</span>
         </div>
         <p className={styles.fundingPct}>{pct}% funded</p>
       </div>

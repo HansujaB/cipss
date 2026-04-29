@@ -78,7 +78,9 @@ export default function Campaigns() {
 function CampaignCard({ campaign }) {
   const scoreColor = getScoreColor(campaign.impactScore);
   const domainColor = domainColors[campaign.domain] || '#888';
-  const pct = Math.min(Math.round((campaign.fundingRaised / campaign.fundingGoal) * 100), 100);
+  const fundingRaised = campaign.fundingRaised || 0;
+  const fundingGoal = campaign.fundingGoal || 1;
+  const pct = Math.min(Math.round((fundingRaised / fundingGoal) * 100), 100);
 
   return (
     <div className={styles.card}>
@@ -90,18 +92,18 @@ function CampaignCard({ campaign }) {
       <p className={styles.cardDesc}>{campaign.description}</p>
 
       <div className={styles.scoreBadge} style={{ background: scoreColor + '22', borderColor: scoreColor, color: scoreColor }}>
-        ⚡ {campaign.impactScore} — {getScoreLabel(campaign.impactScore)}
+        ⚡ {campaign.impactScore || 'N/A'} — {getScoreLabel(campaign.impactScore)}
       </div>
 
       <div className={styles.fundingBar}>
         <div className={styles.fundingFill} style={{ width: `${pct}%`, background: scoreColor }} />
       </div>
       <div className={styles.fundingMeta}>
-        <span>₹{campaign.fundingRaised.toLocaleString()} raised</span>
-        <span>Goal: ₹{campaign.fundingGoal.toLocaleString()}</span>
+        <span>₹{fundingRaised.toLocaleString()} raised</span>
+        <span>Goal: ₹{fundingGoal.toLocaleString()}</span>
       </div>
 
-      <p className={styles.volunteers}>👥 {campaign.volunteers || 0} volunteers</p>
+      <p className={styles.volunteers}>👥 {campaign.plannedVolunteers || campaign.volunteers || 0} volunteers</p>
 
       <div className={styles.actions}>
         <Link to={`/campaign/${campaign.id}`} className={styles.detailBtn}>View Details</Link>

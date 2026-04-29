@@ -13,26 +13,41 @@ export default function Dashboard() {
 
   useEffect(() => {
     const loadDashboard = async () => {
-      const res = await fetch(`${API_BASE_URL}/campaigns/dashboard/summary`);
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to load dashboard');
-      }
+      try {
+        // Try dashboard summary first
+        const res = await fetch(`${API_BASE_URL}/campaigns/dashboard/summary`);
+        if (res.ok) {
+          const data = await res.json();
+          setCampaigns(data.topCampaigns || []);
+          setStats({
+            total: data.stats?.totalCampaigns || 0,
+            funding: data.stats?.totalFunding || 0,
+            volunteers: data.stats?.totalVolunteers || 0,
+            avgImpact: data.stats?.avgImpact || 0,
+          });
+          return;
+        }
+      } catch (e) {}
 
-      setCampaigns(data.topCampaigns || []);
-      setStats({
-        total: data.stats?.totalCampaigns || 0,
-        funding: data.stats?.totalFunding || 0,
-        volunteers: data.stats?.totalVolunteers || 0,
-        avgImpact: data.stats?.avgImpact || 0,
-      });
-      setHotspots(data.hotspots || []);
-      setMapsEnabled(!!data.googleServices?.mapsEnabled);
+      // Fallback: fetch campaigns directly
+      try {
+        const res = await fetch(`${API_BASE_URL}/campaigns`);
+        const data = await res.json();
+        const list = data.campaigns || [];
+        const top = [...list].sort((a, b) => (b.impactScore || 0) - (a.impactScore || 0)).slice(0, 3);
+        setCampaigns(top);
+        setStats({
+          total: list.length,
+          funding: list.reduce((s, c) => s + (c.fundingGoal || 0), 0),
+          volunteers: list.reduce((s, c) => s + (c.plannedVolunteers || 0), 0),
+          avgImpact: list.length ? (list.reduce((s, c) => s + (c.impactScore || 0), 0) / list.length).toFixed(1) : 0,
+        });
+      } catch (e) {
+        console.error('Failed to load campaigns:', e);
+      }
     };
 
-    loadDashboard().catch((error) => {
-      console.error(error);
-    });
+    loadDashboard();
   }, []);
 
   return (
@@ -97,7 +112,9 @@ function StatCard({ icon, label, value, color }) {
 function CampaignCard({ campaign }) {
   const scoreColor = getScoreColor(campaign.impactScore);
   const domainColor = domainColors[campaign.domain] || '#888';
-  const pct = Math.min(Math.round((campaign.fundingRaised / campaign.fundingGoal) * 100), 100);
+  const fundingRaised = campaign.fundingRaised || 0;
+  const fundingGoal = campaign.fundingGoal || 1;
+  const pct = Math.min(Math.round((fundingRaised / fundingGoal) * 100), 100);
 
   return (
     <Link to={`/campaign/${campaign.id}`} className={styles.card}>
@@ -107,13 +124,13 @@ function CampaignCard({ campaign }) {
       <h3 className={styles.cardTitle}>{campaign.title}</h3>
       <p className={styles.cardLocation}>📍 {campaign.location || campaign.area || 'TBD'}</p>
       <div className={styles.scoreBadge} style={{ background: scoreColor + '22', borderColor: scoreColor, color: scoreColor }}>
-        ⚡ {campaign.impactScore} — {getScoreLabel(campaign.impactScore)}
+        ⚡ {campaign.impactScore || 'N/A'} — {getScoreLabel(campaign.impactScore)}
       </div>
       <div className={styles.fundingBar}>
         <div className={styles.fundingFill} style={{ width: `${pct}%`, background: scoreColor }} />
       </div>
       <div className={styles.fundingMeta}>
-        <span>₹{campaign.fundingRaised.toLocaleString()} raised</span>
+        <span>₹{fundingRaised.toLocaleString()} raised</span>
         <span>{pct}%</span>
       </div>
     </Link>

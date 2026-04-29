@@ -11,6 +11,11 @@ import Profile from './pages/Profile';
 import Streak from './pages/Streak';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Mentorship from './pages/Mentorship';
+import Network from './pages/Network';
+import ImpactDashboard from './pages/ImpactDashboard';
+import Chat from './pages/Chat';
+import Notifications from './pages/Notifications';
 import styles from './App.module.css';
 
 const NAV_ITEMS = [
@@ -18,11 +23,18 @@ const NAV_ITEMS = [
     { path: '/', label: 'Dashboard', icon: '🏠', exact: true },
     { path: '/campaigns', label: 'Campaigns', icon: '📋' },
     { path: '/leaderboard', label: 'Leaderboard', icon: '🏆' },
+    { path: '/impact', label: 'Impact Dashboard', icon: '📊' },
   ]},
   { section: 'Achievements', items: [
     { path: '/achievements', label: 'Achievements', icon: '🎖️' },
     { path: '/challenges', label: 'Challenges', icon: '🎯' },
     { path: '/streak', label: 'Streak', icon: '🔥' },
+  ]},
+  { section: 'Community', items: [
+    { path: '/network', label: 'Network', icon: '🔗' },
+    { path: '/mentorship', label: 'Mentorship', icon: '👨‍🏫' },
+    { path: '/chat', label: 'Messages', icon: '💬' },
+    { path: '/notifications', label: 'Notifications', icon: '🔔' },
   ]},
   { section: 'Account', items: [
     { path: '/profile', label: 'Profile', icon: '👤' },
@@ -116,11 +128,14 @@ export default function App() {
             <NavLink to="/leaderboard" className={({ isActive }) => isActive ? `${styles.topNavLink} ${styles.active}` : styles.topNavLink}>🏆 Leaderboard</NavLink>
             <NavLink to="/achievements" className={({ isActive }) => isActive ? `${styles.topNavLink} ${styles.active}` : styles.topNavLink}>🎖️ Achievements</NavLink>
             <NavLink to="/challenges" className={({ isActive }) => isActive ? `${styles.topNavLink} ${styles.active}` : styles.topNavLink}>🎯 Challenges</NavLink>
+            <NavLink to="/network" className={({ isActive }) => isActive ? `${styles.topNavLink} ${styles.active}` : styles.topNavLink}>🔗 Network</NavLink>
+            <NavLink to="/mentorship" className={({ isActive }) => isActive ? `${styles.topNavLink} ${styles.active}` : styles.topNavLink}>👨‍🏫 Mentorship</NavLink>
           </nav>
         )}
         <NavLink to="/profile" className={styles.profileBtn}>
           {user ? `👤 ${user.name?.split(' ')[0]}` : '👤'}
         </NavLink>
+        <NavLink to="/notifications" className={styles.profileBtn}>🔔</NavLink>
         {user ? (
           <button className={styles.logoutBtn} onClick={handleLogout}>Sign Out</button>
         ) : (
@@ -140,6 +155,11 @@ export default function App() {
           <Route path="/challenges" element={<Challenges />} />
           <Route path="/streak" element={<Streak />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/mentorship" element={<Mentorship />} />
+          <Route path="/network" element={<Network />} />
+          <Route path="/impact" element={<ImpactDashboard />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Routes>
