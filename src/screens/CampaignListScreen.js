@@ -43,6 +43,9 @@ export default function CampaignListScreen({ navigation }) {
   // Menu items - only additional screens NOT in bottom nav
   const drawerMenuItems = [
     { key: 'CreateCampaign', label: 'Create Campaign', icon: '➕' },
+    { key: 'HotspotMap', label: 'Hotspot Map', icon: '🗺️' },
+    { key: 'Insights', label: 'Insights & Trends', icon: '📈' },
+    { key: 'NGOUpload', label: 'Upload NGO Metrics', icon: '📤' },
     { key: 'CSRMarketplace', label: 'CSR Marketplace', icon: '🏪' },
     { key: 'ImpactDashboard', label: 'Impact Dashboard', icon: '📊' },
     { key: 'Network', label: 'Network', icon: '👥' },

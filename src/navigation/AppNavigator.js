@@ -45,6 +45,9 @@ import OrganizationBadgesScreen from '../screens/OrganizationBadgesScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import NotificationScreen from '../screens/NotificationScreen';
+import HotspotMapScreen from '../screens/HotspotMapScreen';
+import InsightsScreen from '../screens/InsightsScreen';
+import NGOUploadScreen from '../screens/NGOUploadScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -118,6 +121,11 @@ export default function AppNavigator() {
         <Stack.Screen name="OrganizationBadges" component={OrganizationBadgesScreen} />
         <Stack.Screen name="Notifications" component={NotificationScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
+
+        {/* Map & Insights */}
+        <Stack.Screen name="HotspotMap" component={HotspotMapScreen} />
+        <Stack.Screen name="Insights" component={InsightsScreen} />
+        <Stack.Screen name="NGOUpload" component={NGOUploadScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -24,6 +24,14 @@ const MENU_ITEMS = [
     ]
   },
   {
+    category: 'Map & Insights',
+    items: [
+      { key: 'HotspotMap', label: 'Hotspot Map', icon: '🗺️' },
+      { key: 'Insights', label: 'Insights & Trends', icon: '📈' },
+      { key: 'NGOUpload', label: 'Upload NGO Metrics', icon: '📤' },
+    ]
+  },
+  {
     category: 'Leaderboard & Rankings',
     items: [
       { key: 'Leaderboard', label: 'Leaderboard', icon: '🏆' },

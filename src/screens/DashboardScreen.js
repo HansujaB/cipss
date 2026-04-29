@@ -51,6 +51,9 @@ export default function DashboardScreen({ navigation }) {
   // Menu items - only additional screens NOT in bottom nav
   const drawerMenuItems = [
     { key: 'CreateCampaign', label: 'Create Campaign', icon: '➕' },
+    { key: 'HotspotMap', label: 'Hotspot Map', icon: '🗺️' },
+    { key: 'Insights', label: 'Insights & Trends', icon: '📈' },
+    { key: 'NGOUpload', label: 'Upload NGO Metrics', icon: '📤' },
     { key: 'CSRMarketplace', label: 'CSR Marketplace', icon: '🏪' },
     { key: 'ImpactDashboard', label: 'Impact Dashboard', icon: '📊' },
     { key: 'Network', label: 'Network', icon: '👥' },
@@ -172,14 +175,21 @@ export default function DashboardScreen({ navigation }) {
             </View>
 
             {hotspots.length > 0 && (
-              <View style={styles.hotspotCard}>
-                <Text style={styles.hotspotTitle}>📍 Priority Hotspots</Text>
+              <TouchableOpacity
+                style={styles.hotspotCard}
+                onPress={() => navigation.navigate('HotspotMap')}
+                activeOpacity={0.85}
+              >
+                <View style={styles.hotspotTitleRow}>
+                  <Text style={styles.hotspotTitle}>📍 Priority Hotspots</Text>
+                  <Text style={styles.hotspotSeeAll}>View Map →</Text>
+                </View>
                 {hotspots.slice(0, 3).map((spot, index) => (
                   <Text key={`${spot.area || 'spot'}-${index}`} style={styles.hotspotItem}>
-                    {spot.area || `Lat ${spot.lat}, Lng ${spot.lng}`} • Need {spot.needScore}
+                    {spot.area || `Lat ${spot.lat}, Lng ${spot.lng}`} • Need {Math.round(spot.need_score || spot.needScore || 0)}
                   </Text>
                 ))}
-              </View>
+              </TouchableOpacity>
             )}
 
             {myCampaigns.length > 0 && (
@@ -295,11 +305,21 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 18,
   },
+  hotspotTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   hotspotTitle: {
     fontSize: 15,
     fontWeight: '800',
     color: '#064E3B',
-    marginBottom: 8,
+  },
+  hotspotSeeAll: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#059669',
   },
   hotspotItem: {
     fontSize: 13,
