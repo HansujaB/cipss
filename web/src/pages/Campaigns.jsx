@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import API_BASE_URL from '../config/api';
+import { api, getUser } from '../services/api';
 import { domainColors, domainLabels } from '../data/dummyData';
 import { getScoreColor, getScoreLabel } from '../utils/impactScore';
 import styles from './Campaigns.module.css';
@@ -12,23 +12,27 @@ export default function Campaigns() {
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
+  const [joinedIds, setJoinedIds] = useState(new Set());
+  const user = getUser();
 
   useEffect(() => {
-    const loadCampaigns = async () => {
-      const res = await fetch(`${API_BASE_URL}/campaigns`);
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to load campaigns');
+    const load = async () => {
+      try {
+        const data = await api.get('/campaigns');
+        setCampaigns(data.campaigns || []);
+        setFiltered(data.campaigns || []);
+      } catch (e) {
+        console.error(e);
       }
-      setCampaigns(data.campaigns || []);
-      setFiltered(data.campaigns || []);
+      // Load joined campaigns
+      if (user) {
+        try {
+          const data = await api.get('/campaigns/mine/joined');
+          setJoinedIds(new Set((data.campaigns || []).map(c => c.id)));
+        } catch {}
+      }
     };
-
-    loadCampaigns().catch((error) => {
-      console.error(error);
-      setCampaigns([]);
-      setFiltered([]);
-    });
+    load();
   }, []);
 
   useEffect(() => {
@@ -36,10 +40,21 @@ export default function Campaigns() {
     if (activeFilter !== 'All') result = result.filter(c => c.domain === activeFilter);
     if (search.trim()) result = result.filter(c =>
       c.title.toLowerCase().includes(search.toLowerCase()) ||
-      c.location.toLowerCase().includes(search.toLowerCase())
+      (c.location || '').toLowerCase().includes(search.toLowerCase())
     );
     setFiltered(result);
   }, [search, activeFilter, campaigns]);
+
+  const handleJoin = async (campaignId) => {
+    if (!user) { alert('Please login to join campaigns'); return; }
+    try {
+      await api.post(`/campaigns/${campaignId}/join`, {});
+      setJoinedIds(prev => new Set([...prev, campaignId]));
+      alert('🎉 Joined campaign successfully!');
+    } catch (e) {
+      alert(e.message || 'Failed to join');
+    }
+  };
 
   return (
     <div>
@@ -68,14 +83,14 @@ export default function Campaigns() {
       </div>
 
       <div className={styles.grid}>
-        {filtered.map(c => <CampaignCard key={c.id} campaign={c} />)}
+        {filtered.map(c => <CampaignCard key={c.id} campaign={c} joined={joinedIds.has(c.id)} onJoin={handleJoin} />)}
         {filtered.length === 0 && <p className={styles.empty}>No campaigns found.</p>}
       </div>
     </div>
   );
 }
 
-function CampaignCard({ campaign }) {
+function CampaignCard({ campaign, joined, onJoin }) {
   const scoreColor = getScoreColor(campaign.impactScore);
   const domainColor = domainColors[campaign.domain] || '#888';
   const fundingRaised = campaign.fundingRaised || 0;
@@ -103,10 +118,15 @@ function CampaignCard({ campaign }) {
         <span>Goal: ₹{fundingGoal.toLocaleString()}</span>
       </div>
 
-      <p className={styles.volunteers}>👥 {campaign.plannedVolunteers || campaign.volunteers || 0} volunteers</p>
+      <p className={styles.volunteers}>👥 {campaign.volunteers || campaign.plannedVolunteers || 0} volunteers</p>
 
       <div className={styles.actions}>
         <Link to={`/campaign/${campaign.id}`} className={styles.detailBtn}>View Details</Link>
+        {joined ? (
+          <span className={styles.joinedTag}>✅ Joined</span>
+        ) : (
+          <button className={styles.joinBtn} onClick={() => onJoin(campaign.id)}>Join</button>
+        )}
         <Link to={`/fund/${campaign.id}`} className={styles.fundBtn} style={{ background: scoreColor }}>💳 Fund</Link>
       </div>
     </div>

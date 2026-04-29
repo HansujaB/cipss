@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { domainColors, domainLabels } from '../data/dummyData';
-import API_BASE_URL from '../config/api';
+import { api, getUser } from '../services/api';
 import { getScoreColor, getScoreLabel } from '../utils/impactScore';
 import styles from './CampaignDetail.module.css';
 
@@ -10,21 +10,35 @@ export default function CampaignDetail() {
   const navigate = useNavigate();
   const [campaign, setCampaign] = useState(null);
   const [joined, setJoined] = useState(false);
+  const user = getUser();
+
+  const handleJoin = async () => {
+    if (!user) { navigate('/login'); return; }
+    try {
+      await api.post(`/campaigns/${id}/join`, {});
+      setJoined(true);
+      alert('🎉 Joined campaign successfully!');
+    } catch (e) { alert(e.message); }
+  };
+
+  const handleLeave = async () => {
+    try {
+      await api.delete(`/campaigns/${id}/join`);
+      setJoined(false);
+    } catch (e) { alert(e.message); }
+  };
 
   React.useEffect(() => {
     const loadCampaign = async () => {
-      const res = await fetch(`${API_BASE_URL}/campaigns/${id}`);
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to load campaign');
+      try {
+        const data = await api.get(`/campaigns/${id}`);
+        setCampaign(data);
+      } catch (error) {
+        console.error(error);
+        setCampaign(undefined);
       }
-      setCampaign(data);
     };
-
-    loadCampaign().catch((error) => {
-      console.error(error);
-      setCampaign(undefined);
-    });
+    loadCampaign();
   }, [id]);
 
   if (campaign === null) return <div className={styles.notFound}>Loading campaign...</div>;
@@ -84,9 +98,9 @@ export default function CampaignDetail() {
 
       {/* Join/Leave */}
       {joined ? (
-        <button className={styles.leaveBtn} onClick={() => setJoined(false)}>Leave Campaign</button>
+        <button className={styles.leaveBtn} onClick={handleLeave}>✅ Joined — Leave Campaign</button>
       ) : (
-        <button className={styles.joinBtn} onClick={() => setJoined(true)}>Join Campaign</button>
+        <button className={styles.joinBtn} onClick={handleJoin}>Join Campaign</button>
       )}
 
       {/* Fund CTA */}

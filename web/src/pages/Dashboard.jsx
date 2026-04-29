@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import API_BASE_URL from '../config/api';
+import { api, getUser } from '../services/api';
 import { getScoreColor, getScoreLabel } from '../utils/impactScore';
 import { domainColors, domainLabels } from '../data/dummyData';
 import styles from './Dashboard.module.css';
@@ -8,56 +8,55 @@ import styles from './Dashboard.module.css';
 export default function Dashboard() {
   const [campaigns, setCampaigns] = useState([]);
   const [stats, setStats] = useState({ total: 0, funding: 0, volunteers: 0, avgImpact: 0 });
-  const [hotspots, setHotspots] = useState([]);
-  const [mapsEnabled, setMapsEnabled] = useState(false);
+  const [myCampaigns, setMyCampaigns] = useState([]);
+  const user = getUser();
 
   useEffect(() => {
-    const loadDashboard = async () => {
+    const load = async () => {
       try {
         // Try dashboard summary first
-        const res = await fetch(`${API_BASE_URL}/campaigns/dashboard/summary`);
-        if (res.ok) {
-          const data = await res.json();
-          setCampaigns(data.topCampaigns || []);
-          setStats({
-            total: data.stats?.totalCampaigns || 0,
-            funding: data.stats?.totalFunding || 0,
-            volunteers: data.stats?.totalVolunteers || 0,
-            avgImpact: data.stats?.avgImpact || 0,
-          });
-          return;
-        }
-      } catch (e) {}
-
-      // Fallback: fetch campaigns directly
-      try {
-        const res = await fetch(`${API_BASE_URL}/campaigns`);
-        const data = await res.json();
-        const list = data.campaigns || [];
-        const top = [...list].sort((a, b) => (b.impactScore || 0) - (a.impactScore || 0)).slice(0, 3);
-        setCampaigns(top);
+        const data = await api.get('/campaigns/dashboard/summary');
+        setCampaigns(data.topCampaigns || []);
         setStats({
-          total: list.length,
-          funding: list.reduce((s, c) => s + (c.fundingGoal || 0), 0),
-          volunteers: list.reduce((s, c) => s + (c.plannedVolunteers || 0), 0),
-          avgImpact: list.length ? (list.reduce((s, c) => s + (c.impactScore || 0), 0) / list.length).toFixed(1) : 0,
+          total: data.stats?.totalCampaigns || 0,
+          funding: data.stats?.totalFunding || 0,
+          volunteers: data.stats?.totalVolunteers || 0,
+          avgImpact: data.stats?.avgImpact || 0,
         });
-      } catch (e) {
-        console.error('Failed to load campaigns:', e);
+      } catch {
+        // Fallback to campaigns list
+        try {
+          const data = await api.get('/campaigns');
+          const list = data.campaigns || [];
+          const top = [...list].sort((a, b) => (b.impactScore || 0) - (a.impactScore || 0)).slice(0, 3);
+          setCampaigns(top);
+          setStats({
+            total: list.length,
+            funding: list.reduce((s, c) => s + (c.fundingRaised || 0), 0),
+            volunteers: list.reduce((s, c) => s + (c.volunteers || c.plannedVolunteers || 0), 0),
+            avgImpact: list.length ? (list.reduce((s, c) => s + (c.impactScore || 0), 0) / list.length).toFixed(1) : 0,
+          });
+        } catch (e) { console.error(e); }
+      }
+
+      // Load joined campaigns if logged in
+      if (user) {
+        try {
+          const data = await api.get('/campaigns/mine/joined');
+          setMyCampaigns(data.campaigns || []);
+        } catch {}
       }
     };
-
-    loadDashboard();
+    load();
   }, []);
 
   return (
     <div>
       {/* Header */}
       <div className={styles.header}>
-        <p className={styles.greeting}>Good work, Team! 👋</p>
+        <p className={styles.greeting}>Good work, {user?.name || 'Team'}! 👋</p>
         <h1 className={styles.title}>CSR Dashboard</h1>
         <p className={styles.subtitle}>Data-driven social impact at scale</p>
-        {mapsEnabled && <p className={styles.subtitle}>Google Maps enrichment enabled</p>}
       </div>
 
       {/* Stats */}
@@ -68,15 +67,16 @@ export default function Dashboard() {
         <StatCard icon="⚡" label="Avg Impact" value={stats.avgImpact} color="#F59E0B" />
       </div>
 
-      {hotspots.length > 0 && (
-        <div className={styles.card} style={{ marginBottom: 24 }}>
-          <h3 className={styles.cardTitle}>📍 Priority Hotspots</h3>
-          {hotspots.slice(0, 3).map((spot, index) => (
-            <p key={`${spot.area || 'spot'}-${index}`} className={styles.cardLocation}>
-              {spot.area || `${spot.lat}, ${spot.lng}`} • Need {spot.needScore}
-            </p>
-          ))}
-        </div>
+      {/* My Campaigns */}
+      {myCampaigns.length > 0 && (
+        <>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>🙋 My Campaigns</h2>
+          </div>
+          <div className={styles.campaignGrid}>
+            {myCampaigns.slice(0, 3).map(c => <CampaignCard key={c.id} campaign={c} />)}
+          </div>
+        </>
       )}
 
       {/* Top Campaigns */}

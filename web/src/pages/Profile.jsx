@@ -1,45 +1,56 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { api, getUser } from '../services/api';
 import styles from './Profile.module.css';
-
-const USER = {
-  name: 'Demo User', email: 'demo@cipss.com', avatar: '👤',
-  level: 'Champion', points: 2850, rank: 4,
-  campaigns: 7, donated: 8500, streak: 12,
-  badges: ['🔥', '⭐', '🌟', '👥', '💚'],
-  joinDate: 'January 2024',
-};
-
-const STATS = [
-  { label: 'Campaigns Joined', value: USER.campaigns, icon: '📋' },
-  { label: 'Total Donated', value: `₹${USER.donated.toLocaleString()}`, icon: '💰' },
-  { label: 'Current Streak', value: `${USER.streak} days`, icon: '🔥' },
-  { label: 'Global Rank', value: `#${USER.rank}`, icon: '🏆' },
-];
 
 const QUICK_LINKS = [
   { label: 'My Achievements', icon: '🎖️', path: '/achievements' },
   { label: 'Active Challenges', icon: '🎯', path: '/challenges' },
   { label: 'Streak Tracker', icon: '🔥', path: '/streak' },
   { label: 'Leaderboard', icon: '🏆', path: '/leaderboard' },
+  { label: 'My Campaigns', icon: '📋', path: '/campaigns' },
+  { label: 'Impact Dashboard', icon: '📊', path: '/impact' },
 ];
 
 export default function Profile() {
+  const navigate = useNavigate();
+  const user = getUser();
+  const [myCampaigns, setMyCampaigns] = useState([]);
+  const [points, setPoints] = useState(0);
+
+  useEffect(() => {
+    if (!user) { navigate('/login'); return; }
+    api.get('/campaigns/mine/joined')
+      .then(d => {
+        const campaigns = d.campaigns || [];
+        setMyCampaigns(campaigns);
+        setPoints(campaigns.length * 100);
+      })
+      .catch(() => {});
+  }, []);
+
+  const STATS = [
+    { label: 'Campaigns Joined', value: myCampaigns.length, icon: '📋' },
+    { label: 'Points Earned', value: points.toLocaleString(), icon: '⚡' },
+    { label: 'Current Streak', value: '12 days', icon: '🔥' },
+    { label: 'Global Rank', value: '#4', icon: '🏆' },
+  ];
+
   return (
     <div className={styles.container}>
       {/* Profile Card */}
       <div className={styles.profileCard}>
-        <div className={styles.avatar}>{USER.avatar}</div>
+        <div className={styles.avatar}>👤</div>
         <div className={styles.info}>
-          <h1 className={styles.name}>{USER.name}</h1>
-          <div className={styles.email}>{USER.email}</div>
+          <h1 className={styles.name}>{user?.name || 'User'}</h1>
+          <div className={styles.email}>{user?.email}</div>
           <div className={styles.meta}>
-            <span className={styles.level}>🏅 {USER.level}</span>
-            <span className={styles.points}>⚡ {USER.points.toLocaleString()} pts</span>
-            <span className={styles.joinDate}>📅 Joined {USER.joinDate}</span>
+            <span className={styles.level}>🏅 Champion</span>
+            <span className={styles.points}>⚡ {points.toLocaleString()} pts</span>
+            <span className={styles.joinDate}>🎭 {user?.role || 'volunteer'}</span>
           </div>
           <div className={styles.badges}>
-            {USER.badges.map((b, i) => <span key={i} className={styles.badge}>{b}</span>)}
+            {['🔥', '⭐', '🌟', '👥', '💚'].map((b, i) => <span key={i} className={styles.badge}>{b}</span>)}
           </div>
         </div>
       </div>
@@ -69,6 +80,24 @@ export default function Profile() {
         </div>
       </div>
 
+      {/* My Campaigns */}
+      {myCampaigns.length > 0 && (
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>My Campaigns ({myCampaigns.length})</h2>
+          {myCampaigns.map(c => (
+            <Link key={c.id} to={`/campaign/${c.id}`} style={{ textDecoration: 'none' }}>
+              <div style={{ padding: '12px 0', borderBottom: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ fontWeight: 700, color: '#1A1A2E', fontSize: 14 }}>{c.title}</div>
+                  <div style={{ color: '#6B7280', fontSize: 12 }}>📍 {c.location || c.area}</div>
+                </div>
+                <span style={{ background: '#DCFCE7', color: '#166534', padding: '4px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700, alignSelf: 'center' }}>✅ Joined</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+
       {/* Level Progress */}
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Level Progress</h2>
@@ -78,11 +107,11 @@ export default function Profile() {
             <span className={styles.nextLevel}>🦸 Hero</span>
           </div>
           <div className={styles.levelBar}>
-            <div className={styles.levelFill} style={{ width: '52%' }} />
+            <div className={styles.levelFill} style={{ width: `${Math.min((points / 5500) * 100, 100)}%` }} />
           </div>
           <div className={styles.levelMeta}>
-            <span>2,850 / 5,500 XP</span>
-            <span>2,650 XP to next level</span>
+            <span>{points.toLocaleString()} / 5,500 XP</span>
+            <span>{Math.max(0, 5500 - points).toLocaleString()} XP to next level</span>
           </div>
         </div>
       </div>

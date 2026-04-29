@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { api } from '../services/api';
 import styles from './Leaderboard.module.css';
 
-const DATA = {
+const FALLBACK = {
   volunteers: [
     { rank: 1, name: 'Priya Sharma', points: 2850, campaigns: 12, badges: ['🥇', '⭐', '🔥'] },
     { rank: 2, name: 'Rahul Verma', points: 2640, campaigns: 10, badges: ['🥈', '⭐'] },
@@ -36,7 +37,48 @@ const TABS = [
 
 export default function Leaderboard() {
   const [activeTab, setActiveTab] = useState('volunteers');
-  const data = DATA[activeTab];
+  const [data, setData] = useState(FALLBACK);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadLeaderboard = async () => {
+      try {
+        // Build leaderboard from real campaign participations
+        const [campaignsData] = await Promise.all([
+          api.get('/campaigns'),
+        ]);
+        const campaigns = campaignsData.campaigns || [];
+
+        // Build NGO leaderboard from campaigns
+        const ngoMap = {};
+        campaigns.forEach(c => {
+          if (c.ngo) {
+            if (!ngoMap[c.ngo.id]) {
+              ngoMap[c.ngo.id] = { name: c.ngo.name, campaigns: 0, points: 0, badges: c.ngo.verified ? ['✅'] : [] };
+            }
+            ngoMap[c.ngo.id].campaigns += 1;
+            ngoMap[c.ngo.id].points += (c.impactScore || 5) * 100 + (c.fundingRaised || 0) / 100;
+          }
+        });
+
+        const ngoLeaderboard = Object.values(ngoMap)
+          .sort((a, b) => b.points - a.points)
+          .slice(0, 8)
+          .map((n, i) => ({ ...n, rank: i + 1, points: Math.round(n.points) }));
+
+        if (ngoLeaderboard.length > 0) {
+          setData(prev => ({ ...prev, ngos: ngoLeaderboard }));
+        }
+      } catch (e) {
+        console.log('Using fallback leaderboard data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadLeaderboard();
+  }, []);
+
+  const currentData = data[activeTab] || [];
 
   return (
     <div className={styles.container}>
@@ -47,28 +89,28 @@ export default function Leaderboard() {
 
       {/* Podium - Top 3 */}
       <div className={styles.podium}>
-        {data[1] && (
+        {currentData[1] && (
           <div className={`${styles.podiumItem} ${styles.second}`}>
             <div className={styles.podiumAvatar}>🥈</div>
-            <div className={styles.podiumName}>{data[1].name}</div>
-            <div className={styles.podiumPoints}>{data[1].points.toLocaleString()} pts</div>
+            <div className={styles.podiumName}>{currentData[1].name}</div>
+            <div className={styles.podiumPoints}>{currentData[1].points.toLocaleString()} pts</div>
             <div className={styles.podiumBase} style={{ height: 80 }}>2nd</div>
           </div>
         )}
-        {data[0] && (
+        {currentData[0] && (
           <div className={`${styles.podiumItem} ${styles.first}`}>
             <div className={styles.podiumCrown}>👑</div>
             <div className={styles.podiumAvatar}>🥇</div>
-            <div className={styles.podiumName}>{data[0].name}</div>
-            <div className={styles.podiumPoints}>{data[0].points.toLocaleString()} pts</div>
+            <div className={styles.podiumName}>{currentData[0].name}</div>
+            <div className={styles.podiumPoints}>{currentData[0].points.toLocaleString()} pts</div>
             <div className={styles.podiumBase} style={{ height: 110 }}>1st</div>
           </div>
         )}
-        {data[2] && (
+        {currentData[2] && (
           <div className={`${styles.podiumItem} ${styles.third}`}>
             <div className={styles.podiumAvatar}>🥉</div>
-            <div className={styles.podiumName}>{data[2].name}</div>
-            <div className={styles.podiumPoints}>{data[2].points.toLocaleString()} pts</div>
+            <div className={styles.podiumName}>{currentData[2].name}</div>
+            <div className={styles.podiumPoints}>{currentData[2].points.toLocaleString()} pts</div>
             <div className={styles.podiumBase} style={{ height: 60 }}>3rd</div>
           </div>
         )}
@@ -85,14 +127,14 @@ export default function Leaderboard() {
 
       {/* List */}
       <div className={styles.list}>
-        {data.map(u => (
+        {currentData.map(u => (
           <div key={u.rank} className={`${styles.row} ${u.rank <= 3 ? styles.topRow : ''} ${u.isMe ? styles.myRow : ''}`}>
             <div className={styles.rankCell}>
               {u.rank === 1 ? '🥇' : u.rank === 2 ? '🥈' : u.rank === 3 ? '🥉' : `#${u.rank}`}
             </div>
             <div className={styles.nameCell}>
               <div className={styles.name}>{u.name} {u.isMe && <span className={styles.meTag}>You</span>}</div>
-              <div className={styles.meta}>{u.campaigns} campaigns • {u.badges.join(' ')}</div>
+              <div className={styles.meta}>{u.campaigns} campaigns • {(u.badges || []).join(' ')}</div>
             </div>
             <div className={styles.pointsCell}>{u.points.toLocaleString()} pts</div>
           </div>
